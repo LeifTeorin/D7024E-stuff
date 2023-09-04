@@ -1,2 +1,4 @@
 # D7024E stuff
- lite distribution av system
+Labchads money gang
+
+and we loooove getting our code stolen
