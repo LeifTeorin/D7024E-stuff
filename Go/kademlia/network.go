@@ -13,7 +13,6 @@ func Listen(ip string, port int) error {
 	address := fmt.Sprintf("%s:%d", ip, port)
 	listener, err := net.Listen("tcp", address)
 	if err != nil {
-		// Handle error
 		return err
 	}
 	defer listener.Close()
@@ -23,7 +22,6 @@ func Listen(ip string, port int) error {
 	for {
 		conn, err := listener.Accept()
 		if err != nil {
-			// Handle error
 			return err
 		}
 		fmt.Printf("Holy shit someone connected %s", conn)
