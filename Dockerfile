@@ -14,6 +14,12 @@ FROM alpine:latest
 
 # Use an official Go runtime as a parent image
 FROM golang:latest
+# Download latest listing of available packages:
+RUN apt-get -y update
+# Upgrade already installed packages:
+#RUN apt-get -y upgrade
+# Install a new package:
+RUN apt-get -y install netcat-traditional
 
 # Set the working directory in"side the container
 WORKDIR /app
@@ -25,7 +31,7 @@ COPY . /Go/ .
 RUN go build -o main .
 
 # Expose a port (if needed)
-#EXPOSE 3000
+EXPOSE 3000
 
 # Define the command to run the executable
 CMD ["./main"]
