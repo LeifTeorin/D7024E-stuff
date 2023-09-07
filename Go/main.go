@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"time"
+
 	"github.com/LeifTeorin/Go/kademlia"
 )
 
@@ -19,5 +20,9 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
-	
+
+}
+
+func pisscum(f int) int {
+	return f * 2
 }
