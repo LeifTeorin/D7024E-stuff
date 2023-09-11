@@ -102,11 +102,11 @@ func (network *Network) SendFindContactMessage(contact *Contact) ([]Contact, err
 }
 
 func (network *Network) SendFindDataMessage(hash string) ([]byte, []Contact, error) {
-	// TODO
+	return nil, nil, nil
 }
 
 func (network *Network) SendStoreMessage(data []byte) error{
-	// TODO
+	return nil
 }
 
 func (network *Network) handleConnection(contact *Contact) { // might need to move this one chief
