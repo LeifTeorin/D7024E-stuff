@@ -83,7 +83,15 @@ func (network *Network) SendPingMessage(contact *Contact) bool{
 }
 
 func (network *Network) SendFindContactMessage(contact *Contact) {
-	// TODO
+	msg := Message {
+		"FIND",
+		network.routingTable.me.Address,
+	}
+	_, err := network.SendMessage(msg, contact.Address)
+	if err != nil {
+		fmt.Sprintf("something went wrong :(")
+		
+	}
 }
 
 func (network *Network) SendFindDataMessage(hash string) {
