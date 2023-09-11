@@ -5,6 +5,7 @@ import (
 	"net"
 	"time"
 	"encoding/json"
+	
 )
 
 type Network struct {
@@ -82,26 +83,32 @@ func (network *Network) SendPingMessage(contact *Contact) bool{
 	return true // just to see if it went right for now
 }
 
-func (network *Network) SendFindContactMessage(contact *Contact) {
+func (network *Network) SendFindContactMessage(contact *Contact) ([]Contact, error){
 	msg := Message {
-		"FIND",
+		"FINDCONTACT",
 		network.routingTable.me.Address,
 	}
+	//response, err := network.SendMessage(msg, contact.Address)
 	_, err := network.SendMessage(msg, contact.Address)
+
 	if err != nil {
 		fmt.Sprintf("something went wrong :(")
-		
+		return nil, err
 	}
+
+	var contacts []Contact
+	//json.Unmarschal(response, &contacts)
+	return contacts, nil
 }
 
-func (network *Network) SendFindDataMessage(hash string) {
+func (network *Network) SendFindDataMessage(hash string) ([]byte, []Contact, error) {
 	// TODO
 }
 
-func (network *Network) SendStoreMessage(data []byte) {
+func (network *Network) SendStoreMessage(data []byte) error{
 	// TODO
 }
 
-func (network *Network) handleConnection(contact *Contact) {
-	// TODO
+func (network *Network) handleConnection(contact *Contact) { // might need to move this one chief
+	// TODO 
 }
