@@ -8,12 +8,12 @@ import (
 	
 )
 
-type Network struct {
+type Network struct { // so basically, every node has its' own network... right?
 	routingTable *RoutingTable
-	
+	self *Contact
 }
 
-type Message struct {
+type Message struct { // very very simple and very basic, that's all we need
 	messageType string
 	content string
 }
@@ -29,12 +29,13 @@ func Listen(ip string, port int) error {
 	fmt.Printf("Listening on %s\n", address)
 
 	for {
-		//data := make([]byte, 1024)
+		//data := make([]byte, 1024) // buffer and all that
 		conn, err := listener.Accept()
 		if err != nil {
 			return err
 		}
 		fmt.Printf("Holy shit someone connected %s", conn)
+
 	}
 }
 
@@ -70,18 +71,18 @@ func (network *Network) SendPingMessage(contact *Contact) bool{
 		"PING",
 		network.routingTable.me.Address,		// maybe we should change this cause it's kinda annoying
 	}
-	_, err := network.SendMessage(ping, contact.Address)
+	response, err := network.SendMessage(ping, contact.Address)
 	if err != nil {
 		fmt.Sprintf("ping failed :(")
 		return false
 	}
-	// var message Message
-	// unmarschalerr := json.Unmarschal(response, &message)
+	var message Message
+	unmarschalerr := json.Unmarshal(response, &message)
 
-	// if unmarschalerr != nil {
-	// 	fmt.Sprintf("ping failed :(")
-	// 	return false
-	// }
+	if unmarschalerr != nil || message.messageType != "PONG" {
+		fmt.Sprintf("ping failed :(")
+		return false
+	}
 	return true // just to see if it went right for now
 }
 
@@ -90,8 +91,7 @@ func (network *Network) SendFindContactMessage(contact *Contact) ([]Contact, err
 		"FINDCONTACT",
 		network.routingTable.me.Address,
 	}
-	//response, err := network.SendMessage(msg, contact.Address)
-	_, err := network.SendMessage(msg, contact.Address)
+	response, err := network.SendMessage(msg, contact.Address)
 
 	if err != nil {
 		fmt.Sprintf("something went wrong :(")
@@ -99,7 +99,7 @@ func (network *Network) SendFindContactMessage(contact *Contact) ([]Contact, err
 	}
 
 	var contacts []Contact
-	//json.Unmarschal(response, &contacts)
+	json.Unmarshal(response, &contacts)
 	return contacts, nil
 }
 
@@ -108,24 +108,22 @@ func (network *Network) SendFindDataMessage(contact *Contact, hash string) (stri
 		"FINDDATA",
 		hash,
 	}
-	//response, err := network.SendMessage(msg, contact.Address)
-	_, err := network.SendMessage(msg, contact.Address)
+	response, err := network.SendMessage(msg, contact.Address)
 
 	if err != nil {
 		fmt.Sprintf("something went wrong :(")
 		return "", nil, err
 	}
 
-	//var data string
-	//var contacts []Contact
-	//json.Unmarschal(response, &data)
-	// if data == "" {
-	// 	json.Unmarschal(response, &contacts)
-	// 	return nil, conacts, nil
-	// } else {
-	// 	return data, nil, nil
-	// }
-	return "", nil, nil
+	var data string
+	var contacts []Contact
+	json.Unmarshal(response, &data)
+	if data == "" {
+		json.Unmarshal(response, &contacts)
+		return "", contacts, nil
+	} else {
+		return data, nil, nil
+	}
 }
 
 func (network *Network) SendStoreMessage(data string, contact *Contact) error{
@@ -133,20 +131,19 @@ func (network *Network) SendStoreMessage(data string, contact *Contact) error{
 		"STORE",
 		data,
 	}
-//	response, err := network.SendMessage(msg, contact.Address)
-	_, err := network.SendMessage(msg, contact.Address)
+	response, err := network.SendMessage(msg, contact.Address)
 
 	if err != nil {
 		fmt.Sprintf("something went wrong :(")
 		return err
 	}
 
-	// var storeResponse Message
-	// err = json.Unmarschal(response, &storeResponse)
-	// if err != nil {
-	// 	fmt.Sprintf("Couldn't unmarschal response")
-	// 	return err
-	// }
+	var storeResponse Message
+	err = json.Unmarshal(response, &storeResponse)
+	if err != nil {
+		fmt.Sprintf("Couldn't unmarschal response")
+		return err
+	}
 
 	return nil
 }

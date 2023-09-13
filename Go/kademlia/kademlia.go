@@ -1,6 +1,8 @@
 package kademlia
 
-type Kademlia struct {
+type Kademlia struct { // so this will be our node probably
+	network Network
+	node Contact
 }
 
 func (kademlia *Kademlia) LookupContact(target *Contact) {

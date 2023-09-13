@@ -2,27 +2,30 @@ package main
 
 import (
 	"fmt"
-	"net"
-	"time"
-
 	"github.com/LeifTeorin/Go/kademlia"
 )
 
 func main() {
 	fmt.Printf("Booting up node...\n")
-	err := kademlia.Listen("0.0.0.0", 3000)
-	_, err2 := net.DialTimeout("tcp", "127.0.0.1:3000", time.Duration(10*time.Second))
-	if err2 != nil {
-		fmt.Printf("no response :(")
-	} else {
-		fmt.Printf("they responded :)")
+	mynode := kademlia.NewContact(kademlia.NewKademliaID("FFFFFFFF00000000000000000000000000000000"), "localhost:3000")
+
+	me := kademlia.Kademlia{
+		kademlia.Network {
+			kademlia.NewRoutingTable(mynode),
+			mynode,
+		},
+		mynode,
 	}
-	if err != nil {
-		panic(err)
+	go func (){
+		err := kademlia.Listen("0.0.0.0", 3000)
+	
+		if err != nil {
+			panic(err)
+		}
+	}
+	for {
+
 	}
 
 }
 
-func pisscum(f int) int {
-	return f * 2
-}

@@ -5,6 +5,7 @@ import (
 	"sort"
 )
 
+// Contact can probably be used like a node
 // Contact definition
 // stores the KademliaID, the ip address and the distance
 type Contact struct {
