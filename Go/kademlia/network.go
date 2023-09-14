@@ -18,6 +18,13 @@ type Message struct { // very very simple and very basic, that's all we need
 	content string
 }
 
+func NewNetwork (me Contact) *Network {
+	network := &Network{}
+	network.routingTable = NewRoutingTable(me)
+	network.self = &me
+	return network
+}
+
 func Listen(ip string, port int) error {
 	address := fmt.Sprintf("%s:%d", ip, port)
 	listener, err := net.Listen("tcp", address)

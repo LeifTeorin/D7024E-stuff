@@ -1,8 +1,15 @@
 package kademlia
 
 type Kademlia struct { // so this will be our node probably
-	network Network
-	node Contact
+	Network Network
+	Node Contact
+}
+
+func NewKademlia (node Contact) *Kademlia {
+	kademlia := &Kademlia{}
+	kademlia.Node = node
+	kademlia.Network = *NewNetwork(node)
+	return kademlia
 }
 
 func (kademlia *Kademlia) LookupContact(target *Contact) {
