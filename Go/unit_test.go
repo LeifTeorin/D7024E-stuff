@@ -4,14 +4,30 @@ import (
 	"testing"
 	"github.com/LeifTeorin/Go/kademlia"
 	"fmt"
+	"time"
 )
 
-func PingTest(t *testing.T) {
-	got := 1
-	want := 1
+func TestPing(t *testing.T) {
+	me := kademlia.NewContact(kademlia.NewKademliaID("FFFFFFFF00000000000000000000000000000000"), "localhost:3000")
+	network := kademlia.Network{
+		kademlia.NewRoutingTable(me),
+		&me,
+	}
 
-	if got != want {
-		t.Errorf("Got %d, wanted %d", got, want)
+	me2 := kademlia.NewContact(kademlia.NewKademliaID("FFFFFFFF00000000000000000000000000000000"), "localhost:3000")
+	network2 := kademlia.Network{
+		kademlia.NewRoutingTable(me2),
+		&me2,
+	}
+
+	go network2.Listen("0.0.0.0", 3000)
+	time.Sleep(1*time.Second)
+    
+    // Create a Kademlia instance with properly exported fields
+    //kademliaInstance2 := kademlia.NewKademlia(mynode)
+
+	if network.SendPingMessage(&me2) != true {
+		t.Errorf("Ping didn't work")
 	}
 }
 

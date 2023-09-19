@@ -8,9 +8,9 @@ import (
 	
 )
 
-type Network struct { // so basically, every node has its' own network... right?
-	routingTable *RoutingTable
-	self *Contact
+type Network struct { // so basically, every node has its' own netwoRk... right?
+	RoutingTable *RoutingTable
+	Self *Contact
 }
 
 type Message struct { // very very simple and very basic, that's all we need
@@ -20,12 +20,12 @@ type Message struct { // very very simple and very basic, that's all we need
 
 func NewNetwork (me Contact) *Network {
 	network := &Network{}
-	network.routingTable = NewRoutingTable(me)
-	network.self = &me
+	network.RoutingTable = NewRoutingTable(me)
+	network.Self = &me
 	return network
 }
 
-func Listen(ip string, port int) error {
+func (network *Network) Listen(ip string, port int) error {
 	address := fmt.Sprintf("%s:%d", ip, port)
 	listener, err := net.Listen("tcp", address)
 	if err != nil {
@@ -42,7 +42,13 @@ func Listen(ip string, port int) error {
 			return err
 		}
 		fmt.Printf("Holy shit someone connected %s", conn)
-
+		ping := Message {
+			"PONG",
+			ip,		// maybe we should change this cause it's kinda annoying
+		}
+		data, _ := json.Marshal(ping)
+		_, err = conn.Write(data)
+		fmt.Printf("sent a pong back")
 	}
 }
 
@@ -59,7 +65,7 @@ func (network *Network) SendMessage (msg Message, address string) ([]byte, error
 	}
 
 	// Set a timeout for read and write operations (adjust as needed)
-    deadline := time.Now().Add(5 * time.Second)
+    deadline := time.Now().Add(10*time.Second)
     conn.SetDeadline(deadline)
 
 	// Read and process the response 
@@ -75,8 +81,8 @@ func (network *Network) SendMessage (msg Message, address string) ([]byte, error
 
 func (network *Network) SendPingMessage(contact *Contact) bool{
 	ping := Message {
-		"PING",
-		network.routingTable.me.Address,		// maybe we should change this cause it's kinda annoying
+		"PINR",
+		network.RoutingTable.me.Address,		// maybe we should change this cause it's kinda annoying
 	}
 	response, err := network.SendMessage(ping, contact.Address)
 	if err != nil {
@@ -90,13 +96,15 @@ func (network *Network) SendPingMessage(contact *Contact) bool{
 		fmt.Sprintf("ping failed :(")
 		return false
 	}
+
+	fmt.Println("We have pinged")
 	return true // just to see if it went right for now
 }
 
 func (network *Network) SendFindContactMessage(contact *Contact) ([]Contact, error){
 	msg := Message {
-		"FINDCONTACT",
-		network.routingTable.me.Address,
+		"FINDCONTACR",
+		network.RoutingTable.me.Address,
 	}
 	response, err := network.SendMessage(msg, contact.Address)
 
