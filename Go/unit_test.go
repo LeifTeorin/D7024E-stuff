@@ -1,10 +1,11 @@
 package main
 
 import (
-	"testing"
-	"github.com/LeifTeorin/Go/kademlia"
 	"fmt"
+	"testing"
 	"time"
+
+	"github.com/LeifTeorin/Go/kademlia"
 )
 
 func TestPing(t *testing.T) {
@@ -21,10 +22,10 @@ func TestPing(t *testing.T) {
 	}
 
 	go network2.Listen("0.0.0.0", 3000)
-	time.Sleep(1*time.Second)
-    
-    // Create a Kademlia instance with properly exported fields
-    //kademliaInstance2 := kademlia.NewKademlia(mynode)
+	time.Sleep(1 * time.Second)
+
+	// Create a Kademlia instance with properly exported fields
+	//kademliaInstance2 := kademlia.NewKademlia(mynode)
 
 	if network.SendPingMessage(&me2) != true {
 		t.Errorf("Ping didn't work")
@@ -39,16 +40,6 @@ func TestFailing(t *testing.T) {
 		t.Errorf("Got %d, wanted %d", got, want)
 	}
 }
-
-func TestTest3(t *testing.T) {
-	got := 4
-	want := 8
-
-	if got != want {
-		t.Errorf("Got %d, wanted %d", got, want)
-	}
-}
-
 func TestRoutingTable(t *testing.T) {
 	rt := kademlia.NewRoutingTable(kademlia.NewContact(kademlia.NewKademliaID("FFFFFFFF00000000000000000000000000000000"), "localhost:8000"))
 
