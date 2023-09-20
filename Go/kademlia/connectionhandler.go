@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-func (network *Network) handleConnection(rawMessage []byte) ([]byte, error) {
+func (network *Network) HandleConnection(rawMessage []byte) ([]byte, error) {
 	var msg Message
 	if err := json.Unmarshal(rawMessage, &msg); err != nil {
 		fmt.Println("Error from connecton", err)
@@ -36,6 +36,11 @@ func (network *Network) handlePing() Message {
 		Content:     network.RoutingTable.me.Address, // Update this based on your structure
 	}
 	return pong
+}
+
+func (network *Network) findContact() Contact {
+	var c Contact = NewContact(NewKademliaID("FFFFFFFF00000000000000000000000000000000"), "localhost:3000")
+	return c
 }
 
 //TODO: Store Data & Handle Data in the network.

@@ -1,7 +1,9 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
+	"log"
 	"testing"
 	"time"
 
@@ -53,5 +55,32 @@ func TestRoutingTable(t *testing.T) {
 	contacts := rt.FindClosestContacts(kademlia.NewKademliaID("2111111400000000000000000000000000000000"), 20)
 	for i := range contacts {
 		fmt.Println(contacts[i].String())
+	}
+}
+
+func TestConnectionHandlerPing(t *testing.T) {
+	me := kademlia.NewContact(kademlia.NewKademliaID("FFFFFFFF00000000000000000000000000000000"), "localhost:3000")
+	network := kademlia.Network{
+		kademlia.NewRoutingTable(me),
+		&me,
+	}
+	ping := kademlia.Message{
+		MessageType: "PING",
+		Content:     network.Self.Address, // maybe we should change this cause it's kinda annoying
+	}
+
+	msgBytes, err := json.Marshal(ping)
+	if err != nil {
+		log.Print(err)
+	}
+
+	response, err := network.HandleConnection(msgBytes)
+	var got kademlia.Message
+	want := "PONG"
+
+	json.Unmarshal(response, &got)
+
+	if got.MessageType != want {
+		t.Errorf("Got %s, wanted %s", got, want)
 	}
 }
