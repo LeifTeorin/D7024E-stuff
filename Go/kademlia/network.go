@@ -14,8 +14,8 @@ type Network struct { // so basically, every node has its' own netwoRk... right?
 }
 
 type Message struct { // very very simple and very basic, that's all we need
-	messageType string
-	content string
+	MessageType string
+	Content string
 }
 
 func NewNetwork (me Contact) *Network {
@@ -27,7 +27,10 @@ func NewNetwork (me Contact) *Network {
 
 func (network *Network) Listen(ip string, port int) error {
 	address := fmt.Sprintf("%s:%d", ip, port)
-	listener, err := net.Listen("tcp", address)
+	listener, err := net.ListenUDP("udp", &net.UDPAddr{
+		IP: net.ParseIP(ip),
+		Port: port,
+	})
 	if err != nil {
 		return err
 	}
@@ -36,31 +39,42 @@ func (network *Network) Listen(ip string, port int) error {
 	fmt.Printf("Listening on %s\n", address)
 
 	for {
-		//data := make([]byte, 1024) // buffer and all that
-		conn, err := listener.Accept()
+		data := make([]byte, 2048) // buffer and all that
+		len, remote, err := listener.ReadFromUDP(data)
 		if err != nil {
-			return err
+			fmt.Println("Error reading from UDP:", err)
+			continue
 		}
-		fmt.Printf("Holy shit someone connected %s", conn)
-		ping := Message {
-			"PONG",
-			ip,		// maybe we should change this cause it's kinda annoying
+		var message Message
+		if err := json.Unmarshal(data[:len], &message); err != nil {
+			fmt.Println("Error unmarshalling JSON:", err)
+			continue // Continue listening on unmarshalling error
 		}
-		data, _ := json.Marshal(ping)
-		_, err = conn.Write(data)
-		fmt.Printf("sent a pong back")
+		fmt.Println("message recieved: ", message)
+		if message.MessageType == "PING"{
+			ping := Message {
+				MessageType: "PONG",
+				Content: network.Self.Address,		// maybe we should change this cause it's kinda annoying
+			}
+			data2, _ := json.Marshal(ping)
+			listener.WriteToUDP(data2, remote)
+			fmt.Println("sent a pong back ", ping.MessageType)
+		}
 	}
 }
 
 func (network *Network) SendMessage (msg Message, address string) ([]byte, error){
-	conn, err := net.Dial("tcp", address)
+	fmt.Println("sending stuff to ", address)
+	conn, err := net.Dial("udp", address)
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println("okay we dialed to", conn)
 	data, _ := json.Marshal(msg)
 	_, err = conn.Write(data)
 
 	if err != nil {
+		fmt.Println("Error while writing")
 		return nil, err
 	}
 
@@ -72,6 +86,7 @@ func (network *Network) SendMessage (msg Message, address string) ([]byte, error
     response := make([]byte, 1024) // Adjust buffer size as needed
     n, err := conn.Read(response)
     if err != nil {
+		fmt.Println("we didn't get an answer")
         return nil, err
     }
 
@@ -81,9 +96,10 @@ func (network *Network) SendMessage (msg Message, address string) ([]byte, error
 
 func (network *Network) SendPingMessage(contact *Contact) bool{
 	ping := Message {
-		"PINR",
-		network.RoutingTable.me.Address,		// maybe we should change this cause it's kinda annoying
+		MessageType: "PING",
+		Content: network.RoutingTable.me.Address,		// maybe we should change this cause it's kinda annoying
 	}
+	fmt.Println("pinging ", contact.Address)
 	response, err := network.SendMessage(ping, contact.Address)
 	if err != nil {
 		fmt.Sprintf("ping failed :(")
@@ -91,9 +107,13 @@ func (network *Network) SendPingMessage(contact *Contact) bool{
 	}
 	var message Message
 	unmarschalerr := json.Unmarshal(response, &message)
-
-	if unmarschalerr != nil || message.messageType != "PONG" {
-		fmt.Sprintf("ping failed :(")
+	fmt.Println("here's the response: ", message.MessageType)
+	if unmarschalerr != nil{
+		fmt.Println("errooorr", unmarschalerr.Error())
+		return false
+	} 
+	if message.MessageType != "PONG" {
+		fmt.Println("we didn't get a PONG instead we got ", message.MessageType)
 		return false
 	}
 
@@ -103,7 +123,7 @@ func (network *Network) SendPingMessage(contact *Contact) bool{
 
 func (network *Network) SendFindContactMessage(contact *Contact) ([]Contact, error){
 	msg := Message {
-		"FINDCONTACR",
+		"FINDCONTACT",
 		network.RoutingTable.me.Address,
 	}
 	response, err := network.SendMessage(msg, contact.Address)

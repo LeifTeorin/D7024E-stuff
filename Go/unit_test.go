@@ -14,7 +14,7 @@ func TestPing(t *testing.T) {
 		&me,
 	}
 
-	me2 := kademlia.NewContact(kademlia.NewKademliaID("FFFFFFFF00000000000000000000000000000000"), "localhost:3000")
+	me2 := kademlia.NewContact(kademlia.NewKademliaID("11111111000000000000000000000000000000000"), "localhost:3000")
 	network2 := kademlia.Network{
 		kademlia.NewRoutingTable(me2),
 		&me2,

@@ -60,8 +60,13 @@ func main() {
     mynode := kademlia.NewContact(kademlia.NewRandomKademliaID(), ip+":"+ NODE_PORT_STR)
 
     // Create a Kademlia instance with properly exported fields
-    kademliaInstance := kademlia.NewKademlia(mynode)
+    kademliaInstance := kademlia.NewKademlia(mynode, isBootstrap)
 
+    contact := kademlia.NewContact(
+        kademlia.NewKademliaID("FFFFFFFF00000000000000000000000000000000"),
+        bootstrapIp+":3000",
+    )
+    kademliaInstance.BootstrapNode = contact
     if isBootstrap {
         http.HandleFunc("/", health)
 		go http.ListenAndServe(":80", nil)
@@ -78,33 +83,37 @@ func main() {
     fmt.Println("Please enter something:")
     
     var input string
-    _, scanerr := fmt.Scan(&input)
-    if scanerr != nil {
-        fmt.Println("Error:", err)
-        os.Exit(1)
-    }
+    for {
+        _, scanerr := fmt.Scan(&input)
+        if scanerr != nil {
+            fmt.Println("Error:", err)
+            os.Exit(1)
+        }
 
-    switch input {
-    case "start":
-        fmt.Println("starting")
-	case "ping":
-		pinged := kademliaInstance.Network.SendPingMessage(&mynode)
-		if pinged {
-			fmt.Println("yay")
-		}else{
-			fmt.Println("nay")
-		}
-    default:
-        fmt.Printf("not starting")
-        os.Exit(1)
+        switch input {
+        case "start":
+            fmt.Println("starting")
+        case "ping":
+            pinged := kademliaInstance.Network.SendPingMessage(&mynode)
+            if pinged {
+                fmt.Println("yay")
+            }else{
+                fmt.Println("nay")
+            }
+        case "put":
+            fmt.Println("putting file somewhere")
+        case "get":
+            fmt.Println("getting file from somewhere")
+        case "exit":
+            fmt.Println("shutting down node...")
+            os.Exit(1)
+        default:
+            fmt.Printf("not a valid argument")
+        }
     }
 }
 
 
 func DoTheListen(node *kademlia.Kademlia){
-	err := node.Network.Listen("0.0.0.0", 3000)
-	
-	if err != nil {
-		panic(err)
-	}
+	node.StartUp()
 }
