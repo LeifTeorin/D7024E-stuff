@@ -11,23 +11,28 @@ func (network *Network) HandleConnection(rawMessage []byte) ([]byte, error) {
 		fmt.Println("Error from connecton", err)
 	}
 
-	var response Message
 	switch msg.MessageType {
 	case "FINDCONTACT":
-		break
+		contacts := network.HandleFindContact(msg.From.Address, msg.From)
+		response := FoundContactsMessage{
+			Found: "Yes",
+			FoundContacts: contacts,
+		}
+		data, err := json.Marshal(response)
+		return data, err
 	case "FINDDATA":
-		break
+		return nil, nil
 	case "PING":
-		response = network.handlePing()
-		break
+		response := network.handlePing()
+		network.RoutingTable.AddContact(msg.From)
+		data, err := json.Marshal(response)
+		return data, err
 	case "STORE":
-		break
+		return nil, nil
 	default:
 		fmt.Println("bruh")
-		break
+		return nil, nil
 	}
-	data, err := json.Marshal(response)
-	return data, err
 }
 
 func (network *Network) handlePing() Message {
@@ -38,9 +43,11 @@ func (network *Network) handlePing() Message {
 	return pong
 }
 
-func (network *Network) findContact() Contact {
-	var c Contact = NewContact(NewKademliaID("FFFFFFFF00000000000000000000000000000000"), "localhost:3000")
-	return c
+func (network *Network) HandleFindContact (fromAddress string, fromContact Contact) []Contact{
+	fmt.Println("Find-nodes from ", fromAddress)
+	kClosest := network.RoutingTable.FindClosestContacts(network.RoutingTable.me.ID, 4)
+	fmt.Println("here are the closest: ", kClosest)
+	return kClosest
 }
 
 //TODO: Store Data & Handle Data in the network.

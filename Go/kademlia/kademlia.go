@@ -25,10 +25,12 @@ func NewKademlia (node Contact, isBootstrap bool) *Kademlia {
 }
 
 func (kademlia *Kademlia) LookupContact(target *Contact) ([]Contact, error) {
-	// targetID := target.ID
-	// queriedContacts := new([]Contact)
-	// firstClosest := kademlia.Network.routingTable.FindClosestContacts(targetID, alpha)
-	return nil, nil
+	targetID := target.ID
+	queriedContacts := new([]Contact)
+	firstClosest := kademlia.Network.RoutingTable.FindClosestContacts(targetID, alpha)
+	queriedContacts = &firstClosest
+	
+	return *queriedContacts, nil
 }
 
 func (kademlia *Kademlia) StartUp() {
@@ -56,6 +58,14 @@ func (kademlia *Kademlia) JoinNetwork() { // function for nodes that are not the
 		return
 	}
 	kademlia.Network.RoutingTable.AddContact(kademlia.BootstrapNode)
+	contacts, err := kademlia.Network.SendFindContactMessage(&kademlia.BootstrapNode)
+	fmt.Println("here are my contacts: ", contacts)
+	if err != nil {
+		return
+	}
+	for _, contact := range contacts {
+		kademlia.Network.RoutingTable.AddContact(contact)
+	}
 }
 
 func (kademlia *Kademlia) LookupData(hash string) {

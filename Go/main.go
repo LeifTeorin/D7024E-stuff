@@ -94,7 +94,7 @@ func main() {
         case "start":
             fmt.Println("starting")
         case "ping":
-            pinged := kademliaInstance.Network.SendPingMessage(&mynode)
+            pinged := kademliaInstance.Network.SendPingMessage(&contact)
             if pinged {
                 fmt.Println("yay")
             }else{
