@@ -15,16 +15,19 @@ func (network *Network) HandleConnection(rawMessage []byte) ([]byte, error) {
 	case "FINDCONTACT":
 		contacts := network.HandleFindContact(msg.From.Address, msg.From)
 		response := FoundContactsMessage{
-			Found: "Yes",
+			Found:         "Yes",
 			FoundContacts: contacts,
 		}
 		data, err := json.Marshal(response)
 		return data, err
 	case "FINDDATA":
 		return nil, nil
+	case "JOIN":
+		response := network.HandleJoin(msg.From)
+		data, err := json.Marshal(response)
+		return data, err
 	case "PING":
-		response := network.handlePing()
-		network.RoutingTable.AddContact(msg.From)
+		response := network.HandlePing()
 		data, err := json.Marshal(response)
 		return data, err
 	case "STORE":
@@ -35,19 +38,28 @@ func (network *Network) HandleConnection(rawMessage []byte) ([]byte, error) {
 	}
 }
 
-func (network *Network) handlePing() Message {
+func (network *Network) HandlePing() Message {
 	pong := Message{
 		MessageType: "PONG",
-		Content:     network.RoutingTable.me.Address, // Update this based on your structure
+		Content:     network.RoutingTable.Me.Address, // Update this based on your structure
 	}
 	return pong
 }
 
-func (network *Network) HandleFindContact (fromAddress string, fromContact Contact) []Contact{
+func (network *Network) HandleFindContact(fromAddress string, fromContact Contact) []Contact {
 	fmt.Println("Find-nodes from ", fromAddress)
-	kClosest := network.RoutingTable.FindClosestContacts(network.RoutingTable.me.ID, 4)
+	kClosest := network.RoutingTable.FindClosestContacts(fromContact.ID, 4)
 	fmt.Println("here are the closest: ", kClosest)
 	return kClosest
+}
+
+func (network *Network) HandleJoin(from Contact) Message {
+	network.RoutingTable.AddContact(from)
+	response := Message{
+		MessageType: "JOINED",
+		Content:     "congratz",
+	}
+	return response
 }
 
 //TODO: Store Data & Handle Data in the network.

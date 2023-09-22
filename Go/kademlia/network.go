@@ -1,41 +1,39 @@
 package kademlia
 
 import (
+	"encoding/json"
 	"fmt"
 	"net"
 	"time"
-	"encoding/json"
-	
 )
 
 type Network struct { // so basically, every node has its' own netwoRk... right?
 	RoutingTable *RoutingTable
-	Self *Contact
+	Self         *Contact
 }
 
 type FoundContactsMessage struct {
-	Found string
+	Found         string
 	FoundContacts []Contact
 }
 
 type Message struct { // very very simple and very basic, that's all we need
 	MessageType string
-	Content string
-	From Contact
+	Content     string
+	From        Contact
 }
 
-
-func NewNetwork (me Contact) *Network {
+func NewNetwork(Me Contact) *Network {
 	network := &Network{}
-	network.RoutingTable = NewRoutingTable(me)
-	network.Self = &me
+	network.RoutingTable = NewRoutingTable(Me)
+	network.Self = &Me
 	return network
 }
 
 func (network *Network) Listen(ip string, port int) error {
 	address := fmt.Sprintf("%s:%d", ip, port)
 	listener, err := net.ListenUDP("udp", &net.UDPAddr{
-		IP: net.ParseIP(ip),
+		IP:   net.ParseIP(ip),
 		Port: port,
 	})
 	if err != nil {
@@ -54,7 +52,7 @@ func (network *Network) Listen(ip string, port int) error {
 		}
 		response, err := network.HandleConnection(data[:len])
 		if err != nil {
-			fmt.Println("Error when handling message:", err)
+			fmt.Println("Error when handling Message:", err)
 			continue
 		}
 		listener.WriteToUDP(response, remote)
@@ -62,7 +60,7 @@ func (network *Network) Listen(ip string, port int) error {
 	}
 }
 
-func (network *Network) SendMessage (msg Message, address string) ([]byte, error){
+func (network *Network) SendMessage(msg Message, address string) ([]byte, error) {
 	conn, err := net.Dial("udp", address)
 	if err != nil {
 		return nil, err
@@ -75,27 +73,52 @@ func (network *Network) SendMessage (msg Message, address string) ([]byte, error
 		return nil, err
 	}
 
-	// Set a timeout for read and write operations (adjust as needed)
-    deadline := time.Now().Add(10*time.Second)
-    conn.SetDeadline(deadline)
+	// Set a tiMeout for read and write operations (adjust as needed)
+	deadline := time.Now().Add(10 * time.Second)
+	conn.SetDeadline(deadline)
 
-	// Read and process the response 
-    response := make([]byte, 1024) // Adjust buffer size as needed
-    n, err := conn.Read(response)
-    if err != nil {
+	// Read and process the response
+	response := make([]byte, 1024) // Adjust buffer size as needed
+	n, err := conn.Read(response)
+	if err != nil {
 		fmt.Println("we didn't get an answer")
-        return nil, err
-    }
+		return nil, err
+	}
 
-    // Return the response data (trim excess buffer if needed)
-    return response[:n], nil
+	// Return the response data (trim excess buffer if needed)
+	return response[:n], nil
 }
 
-func (network *Network) SendPingMessage(contact *Contact) bool{
-	ping := Message {
+func (network *Network) SendJoinRequest(contact *Contact) bool {
+	ping := Message{
+		MessageType: "JOIN",
+		Content:     network.RoutingTable.Me.Address,
+		From:        network.RoutingTable.Me, // maybe we should change this cause it's kinda annoying
+	}
+	fmt.Println("joining ", contact.Address)
+	response, err := network.SendMessage(ping, contact.Address)
+	if err != nil {
+		fmt.Sprintf("join failed :(")
+		return false
+	}
+	var Message Message
+	unmarschalerr := json.Unmarshal(response, &Message)
+	if unmarschalerr != nil {
+		fmt.Println("errooorr", unmarschalerr.Error())
+		return false
+	}
+	if Message.MessageType != "JOINED" {
+		fmt.Println("we didn't join the network ", Message.MessageType)
+		return false
+	}
+	return true // just to see if it went right for now
+}
+
+func (network *Network) SendPingMessage(contact *Contact) bool {
+	ping := Message{
 		MessageType: "PING",
-		Content: network.RoutingTable.me.Address,
-		From: network.RoutingTable.me,		// maybe we should change this cause it's kinda annoying
+		Content:     network.RoutingTable.Me.Address,
+		From:        network.RoutingTable.Me, // maybe we should change this cause it's kinda annoying
 	}
 	fmt.Println("pinging ", contact.Address)
 	response, err := network.SendMessage(ping, contact.Address)
@@ -103,29 +126,29 @@ func (network *Network) SendPingMessage(contact *Contact) bool{
 		fmt.Sprintf("ping failed :(")
 		return false
 	}
-	var message Message
-	unmarschalerr := json.Unmarshal(response, &message)
-	if unmarschalerr != nil{
+	var Message Message
+	unmarschalerr := json.Unmarshal(response, &Message)
+	if unmarschalerr != nil {
 		fmt.Println("errooorr", unmarschalerr.Error())
 		return false
-	} 
-	if message.MessageType != "PONG" {
-		fmt.Println("we didn't get a PONG instead we got ", message.MessageType)
+	}
+	if Message.MessageType != "PONG" {
+		fmt.Println("we didn't get a PONG instead we got ", Message.MessageType)
 		return false
 	}
 	return true // just to see if it went right for now
 }
 
-func (network *Network) SendFindContactMessage(contact *Contact) ([]Contact, error){
-	msg := Message {
+func (network *Network) SendFindContactMessage(contact *Contact) ([]Contact, error) {
+	msg := Message{
 		"FINDCONTACT",
-		network.RoutingTable.me.Address,
-		network.RoutingTable.me,
+		network.RoutingTable.Me.Address,
+		network.RoutingTable.Me,
 	}
 	response, err := network.SendMessage(msg, contact.Address)
 
 	if err != nil {
-		fmt.Sprintf("something went wrong :(")
+		fmt.Sprintf("soMething went wrong :(")
 		return nil, err
 	}
 
@@ -133,7 +156,7 @@ func (network *Network) SendFindContactMessage(contact *Contact) ([]Contact, err
 	err2 := json.Unmarshal(response, &contactsmsg)
 
 	if err2 != nil {
-		fmt.Sprintf("something went wrong :(")
+		fmt.Sprintf("soMething went wrong :(")
 		return nil, err2
 	}
 
@@ -141,15 +164,15 @@ func (network *Network) SendFindContactMessage(contact *Contact) ([]Contact, err
 }
 
 func (network *Network) SendFindDataMessage(contact *Contact, hash string) (string, []Contact, error) {
-	msg := Message {
+	msg := Message{
 		"FINDDATA",
 		hash,
-		network.RoutingTable.me,
+		network.RoutingTable.Me,
 	}
 	response, err := network.SendMessage(msg, contact.Address)
 
 	if err != nil {
-		fmt.Sprintf("something went wrong :(")
+		fmt.Sprintf("soMething went wrong :(")
 		return "", nil, err
 	}
 
@@ -164,16 +187,16 @@ func (network *Network) SendFindDataMessage(contact *Contact, hash string) (stri
 	}
 }
 
-func (network *Network) SendStoreMessage(data string, contact *Contact) error{
+func (network *Network) SendStoreMessage(data string, contact *Contact) error {
 	msg := Message{
 		"STORE",
 		data,
-		network.RoutingTable.me,
+		network.RoutingTable.Me,
 	}
 	response, err := network.SendMessage(msg, contact.Address)
 
 	if err != nil {
-		fmt.Sprintf("something went wrong :(")
+		fmt.Sprintf("soMething went wrong :(")
 		return err
 	}
 

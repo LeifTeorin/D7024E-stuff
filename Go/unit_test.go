@@ -58,6 +58,39 @@ func TestRoutingTable(t *testing.T) {
 	}
 }
 
+func TestHandleFindContacts(t *testing.T) {
+	rt := kademlia.NewRoutingTable(kademlia.NewContact(kademlia.NewKademliaID("FFFFFFFF00000000000000000000000000000000"), "localhost:8000"))
+
+	rt.AddContact(kademlia.NewContact(kademlia.NewKademliaID("FFFFFFFF00000000000000000000000000000000"), "localhost:8001"))
+	rt.AddContact(kademlia.NewContact(kademlia.NewKademliaID("1111111100000000000000000000000000000000"), "localhost:8002"))
+	rt.AddContact(kademlia.NewContact(kademlia.NewKademliaID("1111111200000000000000000000000000000000"), "localhost:8002"))
+	rt.AddContact(kademlia.NewContact(kademlia.NewKademliaID("1111111300000000000000000000000000000000"), "localhost:8002"))
+	rt.AddContact(kademlia.NewContact(kademlia.NewKademliaID("1111111400000000000000000000000000000000"), "localhost:8002"))
+	rt.AddContact(kademlia.NewContact(kademlia.NewKademliaID("2111111400000000000000000000000000000000"), "localhost:8002"))
+	network := kademlia.Network{
+		rt,
+		&rt.Me,
+	}
+	msg := kademlia.Message{
+		"FINDCONTACT",
+		"localhost:3000",
+		rt.Me,
+	}
+
+	msgBytes, err := json.Marshal(msg)
+	if err != nil {
+		log.Print(err)
+	}
+
+	response, err := network.HandleConnection(msgBytes)
+	var got kademlia.FoundContactsMessage
+	want := rt.FindClosestContacts(rt.Me.ID, 4)
+	json.Unmarshal(response, &got)
+	if len(got.FoundContacts) != len(want) {
+		t.Errorf("We didn't get the same contacts")
+	}
+}
+
 func TestConnectionHandlerPing(t *testing.T) {
 	me := kademlia.NewContact(kademlia.NewKademliaID("FFFFFFFF00000000000000000000000000000000"), "localhost:3000")
 	network := kademlia.Network{
@@ -66,7 +99,7 @@ func TestConnectionHandlerPing(t *testing.T) {
 	}
 	ping := kademlia.Message{
 		MessageType: "PING",
-		Content:     network.Self.Address, // maybe we should change this cause it's kinda annoying
+		Content:     "localhost:3000", // maybe we should change this cause it's kinda annoying
 	}
 
 	msgBytes, err := json.Marshal(ping)
@@ -74,13 +107,13 @@ func TestConnectionHandlerPing(t *testing.T) {
 		log.Print(err)
 	}
 
-	response, err := network.HandleConnection(msgBytes)
+	response, _ := network.HandleConnection(msgBytes)
 	var got kademlia.Message
 	want := "PONG"
 
 	json.Unmarshal(response, &got)
 
 	if got.MessageType != want {
-		t.Errorf("Got %s, wanted %s", got, want)
+		t.Errorf("Didn't get a pong back")
 	}
 }

@@ -6,17 +6,17 @@ import (
 )
 
 type Kademlia struct { // so this will be our node probably
-	Network Network
-	Node Contact
+	Network       Network
+	Node          Contact
 	BootstrapNode Contact
-	IsBootstrap bool
+	IsBootstrap   bool
 }
 
 const (
 	alpha = 3
 )
 
-func NewKademlia (node Contact, isBootstrap bool) *Kademlia {
+func NewKademlia(node Contact, isBootstrap bool) *Kademlia {
 	kademlia := &Kademlia{}
 	kademlia.Node = node
 	kademlia.Network = *NewNetwork(node)
@@ -29,13 +29,13 @@ func (kademlia *Kademlia) LookupContact(target *Contact) ([]Contact, error) {
 	queriedContacts := new([]Contact)
 	firstClosest := kademlia.Network.RoutingTable.FindClosestContacts(targetID, alpha)
 	queriedContacts = &firstClosest
-	
+
 	return *queriedContacts, nil
 }
 
 func (kademlia *Kademlia) StartUp() {
 	if !kademlia.IsBootstrap {
-		go func(){ 
+		go func() {
 			kademlia.JoinNetwork()
 		}()
 	}
@@ -52,7 +52,7 @@ func (kademlia *Kademlia) JoinNetwork() { // function for nodes that are not the
 		fmt.Println("Now I am become bootstrap")
 		return
 	}
-	sentPing := kademlia.Network.SendPingMessage(&kademlia.BootstrapNode)
+	sentPing := kademlia.Network.SendJoinRequest(&kademlia.BootstrapNode)
 	if !sentPing {
 		fmt.Println("oh no I can't reach the bootstrap :,(")
 		return
@@ -65,6 +65,11 @@ func (kademlia *Kademlia) JoinNetwork() { // function for nodes that are not the
 	}
 	for _, contact := range contacts {
 		kademlia.Network.RoutingTable.AddContact(contact)
+		// contacts2, _ := kademlia.Network.SendFindContactMessage(&contact)
+		// fmt.Println("here are some more contacts I now have: ", contacts2)
+		// for _, contact2 := range contacts2 {
+		// 	kademlia.Network.RoutingTable.AddContact(contact2)
+		// }
 	}
 }
 
