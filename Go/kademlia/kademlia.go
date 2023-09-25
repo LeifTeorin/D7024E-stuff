@@ -10,6 +10,7 @@ type Kademlia struct { // so this will be our node probably
 	Node          Contact
 	BootstrapNode Contact
 	IsBootstrap   bool
+	Storage       Storage
 }
 
 const (
@@ -21,6 +22,7 @@ func NewKademlia(node Contact, isBootstrap bool) *Kademlia {
 	kademlia.Node = node
 	kademlia.Network = *NewNetwork(node)
 	kademlia.IsBootstrap = isBootstrap
+	kademlia.Storage.Init()
 	return kademlia
 }
 

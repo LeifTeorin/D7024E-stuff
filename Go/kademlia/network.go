@@ -98,7 +98,7 @@ func (network *Network) SendJoinRequest(contact *Contact) bool {
 	fmt.Println("joining ", contact.Address)
 	response, err := network.SendMessage(ping, contact.Address)
 	if err != nil {
-		fmt.Sprintf("join failed :(")
+		fmt.Println("join failed :(")
 		return false
 	}
 	var Message Message
@@ -123,7 +123,7 @@ func (network *Network) SendPingMessage(contact *Contact) bool {
 	fmt.Println("pinging ", contact.Address)
 	response, err := network.SendMessage(ping, contact.Address)
 	if err != nil {
-		fmt.Sprintf("ping failed :(")
+		fmt.Println("ping failed :(")
 		return false
 	}
 	var Message Message
@@ -148,7 +148,7 @@ func (network *Network) SendFindContactMessage(contact *Contact) ([]Contact, err
 	response, err := network.SendMessage(msg, contact.Address)
 
 	if err != nil {
-		fmt.Sprintf("soMething went wrong :(")
+		fmt.Println("soMething went wrong :(")
 		return nil, err
 	}
 
@@ -156,7 +156,7 @@ func (network *Network) SendFindContactMessage(contact *Contact) ([]Contact, err
 	err2 := json.Unmarshal(response, &contactsmsg)
 
 	if err2 != nil {
-		fmt.Sprintf("soMething went wrong :(")
+		fmt.Println("soMething went wrong :(")
 		return nil, err2
 	}
 
@@ -172,7 +172,7 @@ func (network *Network) SendFindDataMessage(contact *Contact, hash string) (stri
 	response, err := network.SendMessage(msg, contact.Address)
 
 	if err != nil {
-		fmt.Sprintf("soMething went wrong :(")
+		fmt.Println("soMething went wrong :(")
 		return "", nil, err
 	}
 
@@ -196,14 +196,14 @@ func (network *Network) SendStoreMessage(data string, contact *Contact) error {
 	response, err := network.SendMessage(msg, contact.Address)
 
 	if err != nil {
-		fmt.Sprintf("soMething went wrong :(")
+		fmt.Println("soMething went wrong :(")
 		return err
 	}
 
 	var storeResponse Message
 	err = json.Unmarshal(response, &storeResponse)
 	if err != nil {
-		fmt.Sprintf("Couldn't unmarschal response")
+		fmt.Println("Couldn't unmarschal response")
 		return err
 	}
 
