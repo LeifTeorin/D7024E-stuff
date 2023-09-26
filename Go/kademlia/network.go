@@ -114,14 +114,14 @@ func (network *Network) SendJoinRequest(contact *Contact) bool {
 	return true // just to see if it went right for now
 }
 
-func (network *Network) SendPingMessage(contact *Contact) bool {
+func (network *Network) SendPingMessage(address string) bool {
 	ping := Message{
 		MessageType: "PING",
 		Content:     network.RoutingTable.Me.Address,
 		From:        network.RoutingTable.Me, // maybe we should change this cause it's kinda annoying
 	}
-	fmt.Println("pinging ", contact.Address)
-	response, err := network.SendMessage(ping, contact.Address)
+	fmt.Println("pinging ", address)
+	response, err := network.SendMessage(ping, address)
 	if err != nil {
 		fmt.Println("ping failed :(")
 		return false
