@@ -2,7 +2,6 @@ package kademlia
 
 import (
 	"crypto/sha1"
-	"time"
 )
 
 type Storage struct {
@@ -21,7 +20,7 @@ func (ms *Storage) Delete(key []byte) {
 
 // Store will store a key/value pair for the local node with the given
 // replication and expiration times.
-func (ms *Storage) Store(key []byte, data []byte, replication time.Time, expiration time.Time, publisher bool) error {
+func (ms *Storage) Store(key []byte, data []byte) error {
 	ms.data[string(key)] = data
 	return nil
 }

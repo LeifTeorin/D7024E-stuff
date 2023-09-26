@@ -79,6 +79,9 @@ func (kademlia *Kademlia) LookupData(hash string) {
 	// TODO
 }
 
-func (kademlia *Kademlia) Store(data []byte) {
-	// TODO
+func (kademlia *Kademlia) Store(data []byte) (string, error) {
+	// key := kademlia.Storage.GetKey(data)
+	// contacts, err := kademlia.LookupContact(&kademlia.Node)
+	// err2 := kademlia.Storage.Store(key, data)
+	return "", nil
 }
