@@ -86,10 +86,13 @@ func main() {
 			fmt.Println("Error:", err)
 			os.Exit(1)
 		}
-
-		switch input {
+		inputs := strings.Fields(input)
+		fmt.Println(inputs)
+		switch inputs[0] {
 		case "start":
 			fmt.Println("starting")
+		case "contacts":
+			fmt.Println(kademliaInstance.Network.RoutingTable.ContactsToString())
 		case "ping":
 			pinged := kademliaInstance.Network.SendPingMessage(contact.Address)
 			if pinged {

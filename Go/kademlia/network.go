@@ -139,10 +139,10 @@ func (network *Network) SendPingMessage(address string) bool {
 	return true // just to see if it went right for now
 }
 
-func (network *Network) SendFindContactMessage(contact *Contact) ([]Contact, error) {
+func (network *Network) SendFindContactMessage(contact *Contact, targetID KademliaID) ([]Contact, error) {
 	msg := Message{
 		"FINDCONTACT",
-		network.RoutingTable.Me.Address,
+		targetID.String(),
 		network.RoutingTable.Me,
 	}
 	response, err := network.SendMessage(msg, contact.Address)

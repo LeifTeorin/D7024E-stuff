@@ -13,7 +13,7 @@ func (network *Network) HandleConnection(rawMessage []byte) ([]byte, error) {
 
 	switch msg.MessageType {
 	case "FINDCONTACT":
-		contacts := network.HandleFindContact(msg.From.Address, msg.From)
+		contacts := network.HandleFindContact(msg.From.Address, msg.Content)
 		response := FoundContactsMessage{
 			Found:         "Yes",
 			FoundContacts: contacts,
@@ -46,9 +46,10 @@ func (network *Network) HandlePing() Message {
 	return pong
 }
 
-func (network *Network) HandleFindContact(fromAddress string, fromContact Contact) []Contact {
+func (network *Network) HandleFindContact(fromAddress string, target string) []Contact {
+	targetID := NewKademliaID(target)
 	fmt.Println("Find-nodes from ", fromAddress)
-	kClosest := network.RoutingTable.FindClosestContacts(fromContact.ID, 4)
+	kClosest := network.RoutingTable.FindClosestContacts(targetID, 4)
 	fmt.Println("here are the closest: ", kClosest)
 	return kClosest
 }

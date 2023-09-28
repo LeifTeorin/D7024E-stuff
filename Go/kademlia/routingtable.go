@@ -67,3 +67,13 @@ func (routingTable *RoutingTable) getBucketIndex(id *KademliaID) int {
 
 	return IDLength*8 - 1
 }
+
+func (routingTable *RoutingTable) RemoveContact(contact Contact) {
+	bucketIndex := routingTable.getBucketIndex(contact.ID)
+	bucket := routingTable.buckets[bucketIndex]
+	bucket.RemoveContact(contact)
+}
+
+func (routingTable *RoutingTable) ContactsToString() string {
+	return "wheeheeey"
+}
