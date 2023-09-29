@@ -2,6 +2,8 @@ package kademlia
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
 	"time"
 )
 
@@ -14,8 +16,9 @@ type Kademlia struct { // so this will be our node probably
 }
 
 const (
-	alpha = 3
-	b     = 160
+	alpha       = 3
+	b           = 160
+	updateTimer = 10
 )
 
 func NewKademlia(node Contact, isBootstrap bool) *Kademlia {
@@ -25,6 +28,24 @@ func NewKademlia(node Contact, isBootstrap bool) *Kademlia {
 	kademlia.IsBootstrap = isBootstrap
 	kademlia.Storage.Init()
 	return kademlia
+}
+
+func (kademlia *Kademlia) updateContent() {
+	for key, value := range kademlia.Storage.Data {
+		timestamp := strings.Split(string(value), ":")[0]
+		n, err := strconv.ParseInt(timestamp, 10, 64)
+		if err != nil {
+			fmt.Println(err)
+		}
+
+		now := time.Now() // current local time
+		sec := now.Unix() // number of seconds since January 1, 1970 UTC
+
+		if ((n + 10) - sec) < 0 {
+			delete(kademlia.Storage.Data, key) // delete a key-value pair
+		}
+	}
+	time.Sleep(updateTimer * time.Second)
 }
 
 func (kademlia *Kademlia) LookupContact(target *Contact) ([]Contact, error) {
