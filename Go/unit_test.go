@@ -57,7 +57,7 @@ func TestFindContact(t *testing.T) {
 
 	// Create a Kademlia instance with properly exported fields
 	//kademliaInstance2 := kademlia.NewKademlia(mynode)
-	got, err := network.SendFindContactMessage(&me2)
+	got, err := network.SendFindContactMessage(&me2, *me2.ID)
 	var want [1]kademlia.Contact
 	want[0] = me
 	if err != nil {
