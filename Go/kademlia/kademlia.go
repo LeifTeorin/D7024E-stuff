@@ -188,11 +188,23 @@ func (kademlia *Kademlia) JoinNetwork() { // function for nodes that are not the
 	}
 }
 
-func (kademlia *Kademlia) LookupData(hash string) {
-	// TODO
+func (kademlia *Kademlia) LookupData(hash string) bool {
+	// TODO: Kolla om filen finns med Retrieve på storage
+	_, res := kademlia.Storage.Retrieve([]byte(hash))
+	if res {
+		return true
+	}
+	// TODO: Om ja: Yay!, Annars gå till närmsta kontakt och kolla där
+	contactList := kademlia.Network.RoutingTable.FindClosestContacts(kademlia.Network.RoutingTable.Me.ID, 5)
+	for i := 0; i < len(contactList); i++ {
+		data, _, err := kademlia.Network.SendFindDataMessage(&contactList[0], hash)
+		println(data, err)
+	}
+	return false
+	// TODO: REPEAT
 }
 
-func (kademlia *Kademlia) Store(data []byte) (string, error) {
+func (kademlia *Kademlia) Store(data []byte, key string) (string, error) {
 	// key := kademlia.Storage.GetKey(data)
 	// contacts, err := kademlia.LookupContact(&kademlia.Node)
 	// err2 := kademlia.Storage.Store(key, data)

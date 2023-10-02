@@ -116,7 +116,7 @@ func TestHandleFindContacts(t *testing.T) {
 		log.Print(err)
 	}
 
-	response, err := network.HandleConnection(msgBytes)
+	response, _ := network.HandleConnection(msgBytes)
 	var got kademlia.FoundContactsMessage
 	want := rt.FindClosestContacts(rt.Me.ID, 4)
 	json.Unmarshal(response, &got)
