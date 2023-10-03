@@ -32,7 +32,7 @@ func (store *Storage) GetKey(data []byte) []byte {
 }
 
 // Retrieve will return the local key/value if it exists
-func (ms *Storage) Retrieve(key []byte) ([]byte, bool) {
-	data, found := ms.Data[string(key)]
+func (ms *Storage) Retrieve(key string) ([]byte, bool) {
+	data, found := ms.Data[key]
 	return data, found
 }

@@ -29,7 +29,7 @@ func NewKademlia(node Contact, isBootstrap bool) *Kademlia {
 }
 
 func (kademlia *Kademlia) updateContent() {
-	for key, value := range kademlia.Storage.Data {
+	for key, value := range kademlia.Network.Storage.Data {
 		timestamp := strings.Split(string(value), ":")[0]
 		n, err := strconv.ParseInt(timestamp, 10, 64)
 		if err != nil {
@@ -40,7 +40,7 @@ func (kademlia *Kademlia) updateContent() {
 		sec := now.Unix() // number of seconds since January 1, 1970 UTC
 
 		if ((n + 10) - sec) < 0 {
-			delete(kademlia.Storage.Data, key) // delete a key-value pair
+			delete(kademlia.Network.Storage.Data, key) // delete a key-value pair
 		}
 	}
 	time.Sleep(updateTimer * time.Second)
