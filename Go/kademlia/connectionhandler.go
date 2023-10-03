@@ -21,7 +21,10 @@ func (network *Network) HandleConnection(rawMessage []byte) ([]byte, error) {
 		data, err := json.Marshal(response)
 		return data, err
 	case "FINDDATA":
-		return nil, nil
+		hash := msg.Content
+		response := network.HandleFindData(hash)
+		data, err := json.Marshal(response)
+		return data, err
 	case "JOIN":
 		response := network.HandleJoin(msg.From)
 		data, err := json.Marshal(response)
@@ -61,6 +64,26 @@ func (network *Network) HandleJoin(from Contact) Message {
 		Content:     "congratz",
 	}
 	return response
+}
+
+func (network *Network) HandleFindData(hash string) []byte {
+	data, found := network.Storage.Retrieve(byte(hash))
+	if found {
+		response := Message {
+			MessageType: "FOUND",
+			Content: string(data)
+		}
+		res, err := json.Marshal(response)
+		return res
+	}else{
+		closestNodes := network.RoutingTable.FindClosestContacts(NewKademliaID(hash), 5)
+		response := FoundContactsMessage{
+			Found:         "Yes",
+			FoundContacts: closestNodes,
+		}
+		res, err := json.Marshal(response)
+		return res
+	}
 }
 
 //TODO: Store Data & Handle Data in the network.

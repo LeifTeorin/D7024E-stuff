@@ -93,6 +93,8 @@ func main() {
 			fmt.Println("starting")
 		case "contacts":
 			fmt.Println(kademliaInstance.Network.RoutingTable.ContactsToString())
+		case "ip":
+			fmt.Println(kademliaInstance.Node.Address)
 		case "ping":
 			pinged := kademliaInstance.Network.SendPingMessage(contact.Address)
 			if pinged {

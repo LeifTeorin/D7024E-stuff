@@ -10,6 +10,7 @@ import (
 type Network struct { // so basically, every node has its' own netwoRk... right?
 	RoutingTable *RoutingTable
 	Self         *Contact
+	Storage      Storage
 }
 
 type FoundContactsMessage struct {
@@ -27,6 +28,7 @@ func NewNetwork(Me Contact) *Network {
 	network := &Network{}
 	network.RoutingTable = NewRoutingTable(Me)
 	network.Self = &Me
+	network.Storage.Init()
 	return network
 }
 

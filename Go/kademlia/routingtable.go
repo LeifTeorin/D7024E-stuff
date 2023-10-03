@@ -71,9 +71,12 @@ func (routingTable *RoutingTable) getBucketIndex(id *KademliaID) int {
 func (routingTable *RoutingTable) RemoveContact(contact Contact) {
 	bucketIndex := routingTable.getBucketIndex(contact.ID)
 	bucket := routingTable.buckets[bucketIndex]
-	bucket.RemoveContact(contact)
 }
+	bucket.RemoveContact(contact)
 
 func (routingTable *RoutingTable) ContactsToString() string {
+	for bucket := range routingTable.buckets{
+		
+	}
 	return "wheeheeey"
 }
