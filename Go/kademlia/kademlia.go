@@ -12,7 +12,6 @@ type Kademlia struct { // so this will be our node probably
 	Node          Contact
 	BootstrapNode Contact
 	IsBootstrap   bool
-	Storage       Storage
 }
 
 const (
@@ -26,7 +25,6 @@ func NewKademlia(node Contact, isBootstrap bool) *Kademlia {
 	kademlia.Node = node
 	kademlia.Network = *NewNetwork(node)
 	kademlia.IsBootstrap = isBootstrap
-	kademlia.Storage.Init()
 	return kademlia
 }
 
@@ -193,9 +191,9 @@ func (kademlia *Kademlia) LookupData(hash string) {
 }
 
 func (kademlia *Kademlia) Store(data []byte) (string, error) {
-	// key := kademlia.Storage.GetKey(data)
+	// key := kademlia.Network.Storage.GetKey(data)
 	// contacts, err := kademlia.LookupContact(&kademlia.Node)
-	// err2 := kademlia.Storage.Store(key, data)
+	// err2 := kademlia.Network.Storage.Store(key, data)
 	return "", nil
 }
 
