@@ -229,11 +229,9 @@ func contains(contacts []Contact, contact Contact) bool {
 	return false
 }
 
-func (kademlia *Kademlia) Store(data []byte) (string, error) {
-	key := kademlia.Network.Storage.GetKey(data)
-	contacts, err := kademlia.LookupContact(&kademlia.Node)
-	err2 := kademlia.Network.Storage.Store(key, data)
-	return "", nil
+func (kademlia *Kademlia) Store(key string, data []byte) (string, error) {
+	err := kademlia.Network.Storage.Store(key, data)
+	return "", err
 }
 
 func getBucketIndexFromDifferingBit(id1 KademliaID, id2 KademliaID) int {

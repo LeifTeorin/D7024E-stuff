@@ -20,8 +20,8 @@ func (ms *Storage) Delete(key []byte) {
 
 // Store will store a key/value pair for the local node with the given
 // replication and expiration times.
-func (ms *Storage) Store(key []byte, data []byte) error {
-	ms.Data[string(key)] = data
+func (ms *Storage) Store(key string, data []byte) error {
+	ms.Data[key] = data
 	return nil
 }
 
