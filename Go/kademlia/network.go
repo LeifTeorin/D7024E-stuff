@@ -58,7 +58,6 @@ func (network *Network) Listen(ip string, port int) error {
 			continue
 		}
 		listener.WriteToUDP(response, remote)
-		fmt.Println("We answered")
 	}
 }
 
@@ -189,10 +188,10 @@ func (network *Network) SendFindDataMessage(contact *Contact, hash string) (stri
 	}
 }
 
-func (network *Network) SendStoreMessage(data string, contact *Contact) error {
+func (network *Network) SendStoreMessage(data string, key string, contact *Contact) error {
 	msg := Message{
 		"STORE",
-		data,
+		data + ";" + key,
 		network.RoutingTable.Me,
 	}
 	response, err := network.SendMessage(msg, contact.Address)

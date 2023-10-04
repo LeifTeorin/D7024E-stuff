@@ -3,6 +3,7 @@ package kademlia
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 )
 
 func (network *Network) HandleConnection(rawMessage []byte) ([]byte, error) {
@@ -33,7 +34,9 @@ func (network *Network) HandleConnection(rawMessage []byte) ([]byte, error) {
 		data, err := json.Marshal(response)
 		return data, err
 	case "STORE":
-		return nil, nil
+		response := network.HandleStore(msg.Content)
+		data, err := json.Marshal(response)
+		return data, err
 	default:
 		fmt.Println("bruh")
 		return nil, nil
@@ -65,22 +68,27 @@ func (network *Network) HandleJoin(from Contact) Message {
 	return response
 }
 
+func (network *Network) HandleStore(content string) Message {
+	slice := strings.Split(content, ";")
+	err := network.Storage.Store(slice[1], []byte(slice[0]))
+	if err != nil {
+
+	}
+	msg := Message{
+		MessageType: "STORED",
+		Content:     "congratz",
+	}
+	return msg
+}
+
 func (network *Network) HandleFindData(hash string) ([]byte, error) {
 	data, found := network.Storage.Retrieve(hash)
 	if found {
-		response := Message{
-			MessageType: "FOUND",
-			Content:     string(data),
-		}
-		res, err := json.Marshal(response)
+		res, err := json.Marshal(string(data))
 		return res, err
 	} else {
 		closestNodes := network.RoutingTable.FindClosestContacts(NewKademliaID(hash), 5)
-		response := FoundContactsMessage{
-			Found:         "Yes",
-			FoundContacts: closestNodes,
-		}
-		res, err := json.Marshal(response)
+		res, err := json.Marshal(closestNodes)
 		return res, err
 	}
 }
