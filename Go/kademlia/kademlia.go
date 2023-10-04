@@ -186,14 +186,53 @@ func (kademlia *Kademlia) JoinNetwork() { // function for nodes that are not the
 	}
 }
 
-func (kademlia *Kademlia) LookupData(hash string) {
-	// TODO
+func (kademlia *Kademlia) LookupData(hash string) (bool, []byte) {
+
+	// TODO: Har jag datan?
+	data, found := kademlia.Network.Storage.Retrieve(hash)
+
+	// OM Ja på en gång: Return true
+	if found {
+		return found, data
+	}
+
+	contactList := kademlia.Network.RoutingTable.FindClosestContacts(kademlia.Network.RoutingTable.Me.ID, 5)
+	var searchedContacts []Contact
+	// Nej? : Fråga mina contacts och vänta på svar
+	for i := 0; i < len(contactList); i++ {
+		// Contact : Frågar sina contacts tills Ja kommer tillbaka
+		if !contains(searchedContacts, contactList[i]) {
+			searchedContacts = append(searchedContacts, contactList[i])
+			msg, potentials, err := kademlia.Network.SendFindDataMessage(&contactList[i], hash)
+			if msg == "" {
+				contactList = append(contactList, potentials...)
+			} else {
+				return true, []byte(msg)
+			}
+			if err != nil {
+				println(err)
+			}
+			// Om ja från contact: Return true + datan
+		}
+
+	}
+	// Om inga Ja : False
+	return false, nil
+}
+
+func contains(contacts []Contact, contact Contact) bool {
+	for _, c := range contacts {
+		if c.ID == contact.ID {
+			return true
+		}
+	}
+	return false
 }
 
 func (kademlia *Kademlia) Store(data []byte) (string, error) {
-	// key := kademlia.Network.Storage.GetKey(data)
-	// contacts, err := kademlia.LookupContact(&kademlia.Node)
-	// err2 := kademlia.Network.Storage.Store(key, data)
+	key := kademlia.Network.Storage.GetKey(data)
+	contacts, err := kademlia.LookupContact(&kademlia.Node)
+	err2 := kademlia.Network.Storage.Store(key, data)
 	return "", nil
 }
 

@@ -15,12 +15,14 @@ func TestPing(t *testing.T) {
 	network := kademlia.Network{
 		kademlia.NewRoutingTable(me),
 		&me,
+		kademlia.Storage{},
 	}
 
 	me2 := kademlia.NewContact(kademlia.NewKademliaID("11111111000000000000000000000000000000000"), "localhost:3000")
 	network2 := kademlia.Network{
 		kademlia.NewRoutingTable(me2),
 		&me2,
+		kademlia.Storage{},
 	}
 
 	go network2.Listen("0.0.0.0", 3000)
@@ -39,12 +41,14 @@ func TestFindContact(t *testing.T) {
 	network := kademlia.Network{
 		kademlia.NewRoutingTable(me),
 		&me,
+		kademlia.Storage{},
 	}
 
 	me2 := kademlia.NewContact(kademlia.NewKademliaID("11111111000000000000000000000000000000000"), "localhost:3000")
 	network2 := kademlia.Network{
 		kademlia.NewRoutingTable(me2),
 		&me2,
+		kademlia.Storage{},
 	}
 	network2.RoutingTable.AddContact(me)
 	network2.RoutingTable.AddContact(kademlia.NewContact(kademlia.NewKademliaID("1111111400000000000000000000000000000000"), "localhost:8002"))
@@ -104,6 +108,7 @@ func TestHandleFindContacts(t *testing.T) {
 	network := kademlia.Network{
 		rt,
 		&rt.Me,
+		kademlia.Storage{},
 	}
 	msg := kademlia.Message{
 		"FINDCONTACT",
@@ -130,6 +135,7 @@ func TestConnectionHandlerPing(t *testing.T) {
 	network := kademlia.Network{
 		kademlia.NewRoutingTable(me),
 		&me,
+		kademlia.Storage{},
 	}
 	ping := kademlia.Message{
 		MessageType: "PING",
