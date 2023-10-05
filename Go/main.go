@@ -103,9 +103,14 @@ func main() {
 				fmt.Println("nay")
 			}
 		case "put":
-			fmt.Println("putting file somewhere")
+			kademliaInstance.Store("hejhej")
 		case "get":
-			fmt.Println("getting file from somewhere")
+			found, data := kademliaInstance.LookupData("d6577dc78bc60d5970f504c353eb893e893a95fe")
+			if found {
+				fmt.Println("found data: " + string(data))
+			} else {
+				fmt.Println("we didn't find it :(")
+			}
 		case "exit":
 			fmt.Println("shutting down node...")
 			os.Exit(1)

@@ -2,6 +2,7 @@ package kademlia
 
 import (
 	"crypto/sha1"
+	"encoding/hex"
 )
 
 type Storage struct {
@@ -35,4 +36,10 @@ func (store *Storage) GetKey(data []byte) []byte {
 func (ms *Storage) Retrieve(key string) ([]byte, bool) {
 	data, found := ms.Data[key]
 	return data, found
+}
+
+func NewKey(value string) string {
+	bytes := []byte(value)
+	sha := sha1.Sum(bytes)
+	return hex.EncodeToString(sha[:])
 }
