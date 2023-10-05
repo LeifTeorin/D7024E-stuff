@@ -1,6 +1,7 @@
 package kademlia
 
 import (
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -46,8 +47,8 @@ func (kademlia *Kademlia) updateContent() {
 	time.Sleep(updateTimer * time.Second)
 }
 
-func (kademlia *Kademlia) LookupContact(target *Contact) ([]Contact, error) {
-	targetID := target.ID
+func (kademlia *Kademlia) LookupContact(target *KademliaID) ([]Contact, error) {
+	targetID := target
 	queriedContacts := new([]Contact)
 	var closestList *[]Contact
 	alphaclosestList := kademlia.Network.RoutingTable.FindClosestContacts(targetID, alpha)
@@ -79,7 +80,7 @@ func (kademlia *Kademlia) LookupContact(target *Contact) ([]Contact, error) {
 					for i := 0; i < len(templist); i++ {
 						templist[i].CalcDistance(targetID)
 					}
-					kademlia.addUniqueContacts(templist, *closestList, currentClosest, updateClosest)
+					*closestList, updateClosest = kademlia.addUniqueContacts(templist, *closestList, currentClosest, updateClosest)
 					numQueried++
 				}
 
@@ -132,7 +133,7 @@ func containsContact(s []Contact, e Contact) bool {
 	return false
 }
 
-func (kademlia *Kademlia) addUniqueContacts(ls []Contact, shortList []Contact, currentClosest Contact, updateClosest bool) {
+func (kademlia *Kademlia) addUniqueContacts(ls []Contact, shortList []Contact, currentClosest Contact, updateClosest bool) ([]Contact, bool) {
 	if ls[0].Less(&currentClosest) {
 		currentClosest = ls[0]
 		for _, a := range ls {
@@ -144,6 +145,7 @@ func (kademlia *Kademlia) addUniqueContacts(ls []Contact, shortList []Contact, c
 
 		updateClosest = true
 	}
+	return shortList, updateClosest
 }
 
 func (kademlia *Kademlia) StartUp() {
@@ -170,7 +172,7 @@ func (kademlia *Kademlia) JoinNetwork() { // function for nodes that are not the
 		fmt.Println("oh no I can't reach the bootstrap :,(")
 		return
 	}
-	kademlia.Network.RoutingTable.AddContact(kademlia.BootstrapNode)
+	//kademlia.Network.RoutingTable.AddContact(kademlia.BootstrapNode)
 	contacts, err := kademlia.Network.SendFindContactMessage(&kademlia.BootstrapNode, *kademlia.Node.ID)
 	fmt.Println("here are my contacts: ", contacts)
 	if err != nil {
@@ -229,9 +231,22 @@ func contains(contacts []Contact, contact Contact) bool {
 	return false
 }
 
-func (kademlia *Kademlia) Store(key string, data []byte) (string, error) {
-	err := kademlia.Network.Storage.Store(key, data)
-	return "", err
+func (kademlia *Kademlia) Store(data string) (string, error) {
+	key := NewKey(data)
+	err := kademlia.Network.Storage.Store(key, []byte(data))
+	if err != nil {
+		return "", err
+	}
+	fmt.Println(key)
+	contacts, _ := kademlia.LookupContact(NewKademliaID((key)))
+	if len(contacts) <= 0 {
+		return "", errors.New("Found no nodes to send the new data to")
+	}
+	for _, contact := range contacts {
+		kademlia.Network.SendStoreMessage(data, (key), &contact)
+	}
+	fmt.Println(data + " stored behind key: " + key)
+	return key, nil
 }
 
 func getBucketIndexFromDifferingBit(id1 KademliaID, id2 KademliaID) int {

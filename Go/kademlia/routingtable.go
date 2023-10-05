@@ -1,5 +1,7 @@
 package kademlia
 
+import "fmt"
+
 const bucketSize = 20
 
 // RoutingTable definition
@@ -75,8 +77,13 @@ func (routingTable *RoutingTable) RemoveContact(contact Contact) {
 }
 
 func (routingTable *RoutingTable) ContactsToString() string {
-	// for bucket := range routingTable.buckets {
-
-	// }
-	return "wheeheeey"
+	printout := "Me = " + routingTable.Me.String() + "\nmy contacts: "
+	for _, bucket := range routingTable.buckets {
+		if bucket.Len() != 0 {
+			for contact := bucket.list.Front(); contact != nil; contact = contact.Next() {
+				printout = printout + fmt.Sprintf(`contact("%s", "%s"), `, contact.Value.(Contact).ID, contact.Value.(Contact).Address)
+			}
+		}
+	}
+	return printout
 }

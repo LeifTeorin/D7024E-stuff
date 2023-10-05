@@ -2,6 +2,7 @@ package kademlia
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net"
 	"time"
@@ -157,7 +158,7 @@ func (network *Network) SendFindContactMessage(contact *Contact, targetID Kademl
 	err2 := json.Unmarshal(response, &contactsmsg)
 
 	if err2 != nil {
-		fmt.Println("soMething went wrong :(")
+		fmt.Println("something went wrong :(")
 		return nil, err2
 	}
 
@@ -173,7 +174,7 @@ func (network *Network) SendFindDataMessage(contact *Contact, hash string) (stri
 	response, err := network.SendMessage(msg, contact.Address)
 
 	if err != nil {
-		fmt.Println("soMething went wrong :(")
+		fmt.Println("something went wrong :(")
 		return "", nil, err
 	}
 
@@ -197,7 +198,7 @@ func (network *Network) SendStoreMessage(data string, key string, contact *Conta
 	response, err := network.SendMessage(msg, contact.Address)
 
 	if err != nil {
-		fmt.Println("soMething went wrong :(")
+		fmt.Println("something went wrong :(")
 		return err
 	}
 
@@ -207,6 +208,8 @@ func (network *Network) SendStoreMessage(data string, key string, contact *Conta
 		fmt.Println("Couldn't unmarschal response")
 		return err
 	}
-
+	if storeResponse.MessageType != "STORED" {
+		return errors.New("Failed to store")
+	}
 	return nil
 }

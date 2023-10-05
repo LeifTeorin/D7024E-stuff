@@ -71,8 +71,13 @@ func (network *Network) HandleJoin(from Contact) Message {
 func (network *Network) HandleStore(content string) Message {
 	slice := strings.Split(content, ";")
 	err := network.Storage.Store(slice[1], []byte(slice[0]))
+	fmt.Println("we will store " + slice[0] + " behind key: " + slice[1])
 	if err != nil {
-
+		msg := Message{
+			MessageType: "FAILED",
+			Content:     "oh no",
+		}
+		return msg
 	}
 	msg := Message{
 		MessageType: "STORED",
@@ -84,13 +89,13 @@ func (network *Network) HandleStore(content string) Message {
 func (network *Network) HandleFindData(hash string) ([]byte, error) {
 	data, found := network.Storage.Retrieve(hash)
 	if found {
+		fmt.Println("I had the data")
 		res, err := json.Marshal(string(data))
 		return res, err
 	} else {
+		fmt.Println("I didn't have the data, but these guys might")
 		closestNodes := network.RoutingTable.FindClosestContacts(NewKademliaID(hash), 5)
 		res, err := json.Marshal(closestNodes)
 		return res, err
 	}
 }
-
-//TODO: Store Data & Handle Data in the network.
