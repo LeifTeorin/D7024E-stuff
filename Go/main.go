@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 
 	"github.com/LeifTeorin/Go/kademlia"
@@ -79,14 +80,16 @@ func main() {
 	// Prevent the main function from exiting immediately
 	fmt.Println("Please enter something:")
 
-	var input string
+	scanner := bufio.NewScanner(os.Stdin)
 	for {
-		_, scanerr := fmt.Scan(&input)
-		if scanerr != nil {
+		scanner.Scan()
+		if err := scanner.Err(); err != nil {
 			fmt.Println("Error:", err)
 			os.Exit(1)
 		}
-		inputs := strings.Fields(input)
+		input := scanner.Text() // Read the entire line
+		trimmedinput := strings.TrimSpace(input)
+		inputs := strings.Fields(trimmedinput)
 		fmt.Println(inputs)
 		switch inputs[0] {
 		case "start":
@@ -96,16 +99,37 @@ func main() {
 		case "ip":
 			fmt.Println(kademliaInstance.Node.Address)
 		case "ping":
-			pinged := kademliaInstance.Network.SendPingMessage(contact.Address)
-			if pinged {
-				fmt.Println("yay")
+			if len(inputs) == 2 {
+				fmt.Println(inputs[1])
+				pinged := kademliaInstance.Network.SendPingMessage(inputs[1] + ":3000")
+				//pinged := kademliaInstance.Network.SendPingMessage("127.27.0.3:3000")
+				if pinged {
+					fmt.Println("yay")
+				} else {
+					fmt.Println("nay")
+				}
 			} else {
-				fmt.Println("nay")
+				fmt.Println("wrong amount of arguments")
 			}
+
 		case "put":
-			kademliaInstance.Store("hejhej")
+			fmt.Println("please enter what you would like to store: ")
+			scanner.Scan()
+			if err := scanner.Err(); err != nil {
+				fmt.Println("Error:", err)
+				os.Exit(1)
+			}
+			input := scanner.Text() // Read the entire line
+			kademliaInstance.Store(input)
 		case "get":
-			found, data := kademliaInstance.LookupData("d6577dc78bc60d5970f504c353eb893e893a95fe")
+			fmt.Println("please enter the key you would like to search for: ")
+			scanner.Scan()
+			if err := scanner.Err(); err != nil {
+				fmt.Println("Error:", err)
+				os.Exit(1)
+			}
+			input := scanner.Text() // Read the entire line
+			found, data := kademliaInstance.LookupData(input)
 			if found {
 				fmt.Println("found data: " + string(data))
 			} else {

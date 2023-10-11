@@ -53,9 +53,7 @@ func (network *Network) HandlePing() Message {
 
 func (network *Network) HandleFindContact(fromAddress string, target string) []Contact {
 	targetID := NewKademliaID(target)
-	fmt.Println("Find-nodes from ", fromAddress)
 	kClosest := network.RoutingTable.FindClosestContacts(targetID, 4)
-	fmt.Println("here are the closest: ", kClosest)
 	return kClosest
 }
 
@@ -71,7 +69,6 @@ func (network *Network) HandleJoin(from Contact) Message {
 func (network *Network) HandleStore(content string) Message {
 	slice := strings.Split(content, ";")
 	err := network.Storage.Store(slice[1], []byte(slice[0]))
-	fmt.Println("we will store " + slice[0] + " behind key: " + slice[1])
 	if err != nil {
 		msg := Message{
 			MessageType: "FAILED",
@@ -89,11 +86,9 @@ func (network *Network) HandleStore(content string) Message {
 func (network *Network) HandleFindData(hash string) ([]byte, error) {
 	data, found := network.Storage.Retrieve(hash)
 	if found {
-		fmt.Println("I had the data")
 		res, err := json.Marshal(string(data))
 		return res, err
 	} else {
-		fmt.Println("I didn't have the data, but these guys might")
 		closestNodes := network.RoutingTable.FindClosestContacts(NewKademliaID(hash), 5)
 		res, err := json.Marshal(closestNodes)
 		return res, err

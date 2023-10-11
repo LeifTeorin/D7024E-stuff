@@ -172,9 +172,7 @@ func (kademlia *Kademlia) JoinNetwork() { // function for nodes that are not the
 		fmt.Println("oh no I can't reach the bootstrap :,(")
 		return
 	}
-	//kademlia.Network.RoutingTable.AddContact(kademlia.BootstrapNode)
 	contacts, err := kademlia.Network.SendFindContactMessage(&kademlia.BootstrapNode, *kademlia.Node.ID)
-	fmt.Println("here are my contacts: ", contacts)
 	if err != nil {
 		return
 	}
