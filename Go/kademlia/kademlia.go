@@ -184,6 +184,33 @@ func (kademlia *Kademlia) JoinNetwork() { // function for nodes that are not the
 		// 	kademlia.Network.RoutingTable.AddContact(contact2)
 		// }
 	}
+	kademlia.refresh()
+}
+
+func (kademlia *Kademlia) refresh() {
+	var lowerBound *KademliaID
+	var highBound *KademliaID
+
+	if kademlia.Network.RoutingTable.Me.ID.Less(kademlia.BootstrapNode.ID) {
+		lowerBound = kademlia.BootstrapNode.ID
+		highBound = NewKademliaID("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")
+	} else {
+		lowerBound = NewKademliaID("0000000000000000000000000000000000000000")
+		highBound = kademlia.BootstrapNode.ID
+	}
+
+	randomKademliaIDInRnge, err := NewRandomKademliaIDInRange(lowerBound, highBound)
+	if err != nil {
+		return
+	}
+	contacts, err := kademlia.LookupContact(randomKademliaIDInRnge)
+	if err != nil {
+		return
+	}
+	for _, contact := range contacts {
+		kademlia.Network.RoutingTable.AddContact(contact)
+	}
+
 }
 
 func (kademlia *Kademlia) LookupData(hash string) (bool, []byte) {

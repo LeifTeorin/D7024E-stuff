@@ -88,62 +88,60 @@ func main() {
 			os.Exit(1)
 		}
 		input := scanner.Text() // Read the entire line
-		trimmedinput := strings.TrimSpace(input)
-		inputs := strings.Fields(trimmedinput)
-		fmt.Println(inputs)
-		switch inputs[0] {
-		case "start":
-			fmt.Println("starting")
-		case "contacts":
-			fmt.Println(kademliaInstance.Network.RoutingTable.ContactsToString())
-		case "ip":
-			fmt.Println(kademliaInstance.Node.Address)
-		case "ping":
-			if len(inputs) == 2 {
-				fmt.Println(inputs[1])
-				pinged := kademliaInstance.Network.SendPingMessage(inputs[1] + ":3000")
-				//pinged := kademliaInstance.Network.SendPingMessage("127.27.0.3:3000")
-				if pinged {
-					fmt.Println("yay")
-				} else {
-					fmt.Println("nay")
-				}
-			} else {
-				fmt.Println("wrong amount of arguments")
-			}
-
-		case "put":
-			fmt.Println("please enter what you would like to store: ")
-			scanner.Scan()
-			if err := scanner.Err(); err != nil {
-				fmt.Println("Error:", err)
-				os.Exit(1)
-			}
-			input := scanner.Text() // Read the entire line
-			kademliaInstance.Store(input)
-		case "get":
-			fmt.Println("please enter the key you would like to search for: ")
-			scanner.Scan()
-			if err := scanner.Err(); err != nil {
-				fmt.Println("Error:", err)
-				os.Exit(1)
-			}
-			input := scanner.Text() // Read the entire line
-			found, data := kademliaInstance.LookupData(input)
-			if found {
-				fmt.Println("found data: " + string(data))
-			} else {
-				fmt.Println("we didn't find it :(")
-			}
-		case "exit":
-			fmt.Println("shutting down node...")
-			os.Exit(1)
-		default:
-			fmt.Printf("not a valid argument")
-		}
+		handleInput(input, kademliaInstance)
 	}
 }
 
 func DoTheListen(node *kademlia.Kademlia) {
 	node.StartUp()
+}
+
+func handleInput(input string, kademliaInstance *kademlia.Kademlia) {
+	trimmedinput := strings.TrimSpace(input)
+	inputs := strings.Fields(trimmedinput)
+	fmt.Println(inputs)
+	switch inputs[0] {
+	case "start":
+		fmt.Println("starting")
+	case "contacts":
+		fmt.Println(kademliaInstance.Network.RoutingTable.ContactsToString())
+	case "ip":
+		fmt.Println(kademliaInstance.Node.Address)
+	case "ping":
+		if len(inputs) == 2 {
+			fmt.Println(inputs[1])
+			pinged := kademliaInstance.Network.SendPingMessage(inputs[1] + ":3000")
+			//pinged := kademliaInstance.Network.SendPingMessage("127.27.0.3:3000")
+			if pinged {
+				fmt.Println("yay")
+			} else {
+				fmt.Println("nay")
+			}
+		} else {
+			fmt.Println("wrong amount of arguments")
+		}
+
+	case "put":
+		if len(inputs) == 2 {
+			kademliaInstance.Store(inputs[1])
+		} else {
+			fmt.Println("wrong amount of arguments")
+		}
+	case "get":
+		if len(inputs) == 2 {
+			found, data := kademliaInstance.LookupData(inputs[1])
+			if found {
+				fmt.Println("found data: " + string(data))
+			} else {
+				fmt.Println("we didn't find it :(")
+			}
+		} else {
+			fmt.Println("wrong amount of arguments")
+		}
+	case "exit":
+		fmt.Println("shutting down node...")
+		os.Exit(1)
+	default:
+		fmt.Printf("not a valid argument")
+	}
 }
