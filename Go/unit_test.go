@@ -67,7 +67,7 @@ func TestFindContact(t *testing.T) {
 	var want [1]kademlia.Contact
 	want[0] = me
 	if err != nil {
-		t.Errorf("Got an error: ", err)
+		t.Errorf("Got an error: %e", err)
 	}
 	if len(got) != 4 {
 		t.Errorf("Didn't get the right contacts")
@@ -88,14 +88,14 @@ func TestStoreMessage(t *testing.T) {
 		&me2,
 		kademlia.Storage{},
 	}
-
+	network2.Storage.Init()
 	go network2.Listen("0.0.0.0", 3000)
 	time.Sleep(1 * time.Second)
 
 	// Create a Kademlia instance with properly exported fields
 	//kademliaInstance2 := kademlia.NewKademlia(mynode)
 	key := kademlia.NewKey("hej")
-	err = network.SendStoreMessage("hej", key, me2)
+	err := network.SendStoreMessage("hej", key, &me2)
 	if err != nil {
 		t.Errorf("Store didn't work")
 	}
@@ -123,7 +123,7 @@ func TestFindData(t *testing.T) {
 	// Create a Kademlia instance with properly exported fields
 	//kademliaInstance2 := kademlia.NewKademlia(mynode)
 	key := kademlia.NewKey("hejhej")
-	got, _, err = network.SendStoreMessage(me2, key)
+	got, _, err := network.SendFindDataMessage(&me2, key)
 	if err != nil {
 		t.Errorf("Store didn't work")
 	}
@@ -149,7 +149,7 @@ func TestHandleFindContacts(t *testing.T) {
 	}
 	msg := kademlia.Message{
 		"FINDCONTACT",
-		"localhost:3000",
+		rt.Me.ID.String(),
 		rt.Me,
 	}
 
@@ -181,7 +181,7 @@ func TestConnectionHandlerPing(t *testing.T) {
 
 	msgBytes, err := json.Marshal(ping)
 	if err != nil {
-		log.Print(err)
+		t.Errorf("error when marshalling: %e", err)
 	}
 
 	response, _ := network.HandleConnection(msgBytes)
@@ -191,7 +191,7 @@ func TestConnectionHandlerPing(t *testing.T) {
 	json.Unmarshal(response, &got)
 
 	if got.MessageType != want {
-		t.Errorf("Didn't get a pong back")
+		t.Error("Didn't get a pong back")
 	}
 }
 
@@ -202,16 +202,17 @@ func TestConnectionHandlerFindData(t *testing.T) {
 		&me,
 		kademlia.Storage{},
 	}
-
+	network.Storage.Init()
 	network.Storage.Store(kademlia.NewKey("hejhej"), []byte("hejhej"))
 	ping := kademlia.Message{
 		"FINDDATA",
 		kademlia.NewKey("hejhej"),
+		me,
 	}
 
 	msgBytes, err := json.Marshal(ping)
 	if err != nil {
-		log.Print(err)
+		t.Errorf("error when marshalling")
 	}
 
 	response, _ := network.HandleConnection(msgBytes)
@@ -225,6 +226,36 @@ func TestConnectionHandlerFindData(t *testing.T) {
 	}
 }
 
+func TestHandleStore(t *testing.T) {
+	me := kademlia.NewContact(kademlia.NewKademliaID("FFFFFFFF00000000000000000000000000000000"), "localhost:3000")
+	network := kademlia.Network{
+		kademlia.NewRoutingTable(me),
+		&me,
+		kademlia.Storage{},
+	}
+	network.Storage.Init()
+	ping := kademlia.Message{
+		"STORE",
+		"hejhej;" + kademlia.NewKey("hejhej"),
+		me,
+	}
+
+	msgBytes, err := json.Marshal(ping)
+	if err != nil {
+		t.Errorf("error when marshalling")
+	}
+
+	response, _ := network.HandleConnection(msgBytes)
+	var got string
+	//want := "hejhej"
+
+	json.Unmarshal(response, &got)
+
+	if !reflect.DeepEqual(string(network.Storage.Data[kademlia.NewKey("hejhej")]), "hejhej") {
+		t.Errorf("Insert: Expected hejhej, got %v", network.Storage.Data[kademlia.NewKey("hejhej")])
+	}
+}
+
 // STORAGE
 func TestInsert(t *testing.T) {
 	dataStore := kademlia.Storage{}
@@ -233,10 +264,10 @@ func TestInsert(t *testing.T) {
 	value := []byte("testValue")
 	key := kademlia.NewKey("testValue")
 
-	dataStore.Insert(key, value)
+	dataStore.Store(key, value)
 
-	if !reflect.DeepEqual(dataStore.data[key.Hash], value) {
-		t.Errorf("Insert: Expected %v, got %v", value, dataStore.data[key.Hash])
+	if !reflect.DeepEqual(dataStore.Data[key], value) {
+		t.Errorf("Insert: Expected %v, got %v", value, dataStore.Data[key])
 	}
 }
 
@@ -247,21 +278,21 @@ func TestInsertAndGet(t *testing.T) {
 	value := []byte("testValue")
 	key := kademlia.NewKey("testValue")
 
-	dataStore.Insert(key, value)
+	dataStore.Store(key, value)
 
 	retrievedValue, got := dataStore.Retrieve(key)
-	if err != true {
+	if got != true {
 		t.Errorf("Couldn't get the value")
 	}
 
-	if retrievedValue != value {
+	if string(retrievedValue) != "testValue" {
 		t.Errorf("Get: Expected %v, got %v", value, retrievedValue)
 	}
 
 	// Test case for a non-existent key
 	value2 := "testValue2" // refers to key that has not been previously inserted into data store
-	keyNotExisting := NewKey(value2)
-	_, got = dataStore.Get(keyNotExisting)
+	keyNotExisting := kademlia.NewKey(value2)
+	_, got = dataStore.Retrieve(keyNotExisting)
 	if got == true {
 		t.Errorf("Get: Expected false for non-existent key, but got true")
 	}
