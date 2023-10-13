@@ -3,6 +3,7 @@ package kademlia
 import (
 	"crypto/sha1"
 	"encoding/hex"
+	"errors"
 )
 
 type Storage struct {
@@ -17,6 +18,10 @@ func (ms *Storage) Init() {
 // Store will store a key/value pair for the local node with the given
 // replication and expiration times.
 func (ms *Storage) Store(key string, data []byte) error {
+	_, found := ms.Retrieve(key)
+	if found {
+		return errors.New("can't modify data")
+	}
 	ms.Data[key] = data
 	return nil
 }

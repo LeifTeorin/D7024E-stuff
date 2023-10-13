@@ -2,6 +2,7 @@ package kademlia
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 )
@@ -38,8 +39,7 @@ func (network *Network) HandleConnection(rawMessage []byte) ([]byte, error) {
 		data, err := json.Marshal(response)
 		return data, err
 	default:
-		fmt.Println("bruh")
-		return nil, nil
+		return nil, errors.New("couldn't handle unknown command")
 	}
 }
 
@@ -72,7 +72,7 @@ func (network *Network) HandleStore(content string) Message {
 	if err != nil {
 		msg := Message{
 			MessageType: "FAILED",
-			Content:     "oh no",
+			Content:     err.Error(),
 		}
 		return msg
 	}

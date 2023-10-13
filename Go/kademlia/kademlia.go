@@ -3,8 +3,6 @@ package kademlia
 import (
 	"errors"
 	"fmt"
-	"strconv"
-	"strings"
 	"time"
 )
 
@@ -27,24 +25,6 @@ func NewKademlia(node Contact, isBootstrap bool) *Kademlia {
 	kademlia.Network = *NewNetwork(node)
 	kademlia.IsBootstrap = isBootstrap
 	return kademlia
-}
-
-func (kademlia *Kademlia) updateContent() {
-	for key, value := range kademlia.Network.Storage.Data {
-		timestamp := strings.Split(string(value), ":")[0]
-		n, err := strconv.ParseInt(timestamp, 10, 64)
-		if err != nil {
-			fmt.Println(err)
-		}
-
-		now := time.Now() // current local time
-		sec := now.Unix() // number of seconds since January 1, 1970 UTC
-
-		if ((n + 10) - sec) < 0 {
-			delete(kademlia.Network.Storage.Data, key) // delete a key-value pair
-		}
-	}
-	time.Sleep(updateTimer * time.Second)
 }
 
 func (kademlia *Kademlia) LookupContact(target *KademliaID) ([]Contact, error) {
@@ -272,31 +252,4 @@ func (kademlia *Kademlia) Store(data string) (string, error) {
 	}
 	fmt.Println(data + " stored behind key: " + key)
 	return key, nil
-}
-
-func getBucketIndexFromDifferingBit(id1 KademliaID, id2 KademliaID) int {
-	// Look at each byte from left to right
-	for j := 0; j < len(id1); j++ {
-		// xor the byte
-		xor := id1[j] ^ id2[j]
-
-		// check each bit on the xored result from left to right in order
-		for i := 0; i < 8; i++ {
-			if hasBit(xor, uint(i)) {
-				byteIndex := j * 8
-				bitIndex := i
-				return b - (byteIndex + bitIndex) - 1
-			}
-		}
-	}
-
-	// the ids must be the same
-	// this should only happen during bootstrapping
-	return 0
-}
-
-func hasBit(n byte, pos uint) bool {
-	pos = 7 - pos
-	val := n & (1 << pos)
-	return (val > 0)
 }

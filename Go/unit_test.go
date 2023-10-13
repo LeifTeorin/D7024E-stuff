@@ -13,21 +13,21 @@ import (
 // MESSAGES
 
 func TestPing(t *testing.T) { // this tests both our ping function and the listen function
-	me := kademlia.NewContact(kademlia.NewKademliaID("FFFFFFFF00000000000000000000000000000000"), "localhost:3000")
+	me := kademlia.NewContact(kademlia.NewKademliaID("FFFFFFFF00000000000000000000000000000000"), "localhost:3001")
 	network := kademlia.Network{
 		kademlia.NewRoutingTable(me),
 		&me,
 		kademlia.Storage{},
 	}
 
-	me2 := kademlia.NewContact(kademlia.NewKademliaID("11111111000000000000000000000000000000000"), "localhost:3000")
+	me2 := kademlia.NewContact(kademlia.NewKademliaID("11111111000000000000000000000000000000000"), "localhost:3001")
 	network2 := kademlia.Network{
 		kademlia.NewRoutingTable(me2),
 		&me2,
 		kademlia.Storage{},
 	}
 
-	go network2.Listen("0.0.0.0", 3000)
+	go network2.Listen("0.0.0.0", 3001)
 	time.Sleep(1 * time.Second)
 
 	// Create a Kademlia instance with properly exported fields
@@ -39,14 +39,14 @@ func TestPing(t *testing.T) { // this tests both our ping function and the liste
 }
 
 func TestFindContact(t *testing.T) {
-	me := kademlia.NewContact(kademlia.NewKademliaID("FFFFFFFF00000000000000000000000000000000"), "localhost:3000")
+	me := kademlia.NewContact(kademlia.NewKademliaID("FFFFFFFF00000000000000000000000000000000"), "localhost:3002")
 	network := kademlia.Network{
 		kademlia.NewRoutingTable(me),
 		&me,
 		kademlia.Storage{},
 	}
 
-	me2 := kademlia.NewContact(kademlia.NewKademliaID("11111111000000000000000000000000000000000"), "localhost:3000")
+	me2 := kademlia.NewContact(kademlia.NewKademliaID("11111111000000000000000000000000000000000"), "localhost:3002")
 	network2 := kademlia.Network{
 		kademlia.NewRoutingTable(me2),
 		&me2,
@@ -58,7 +58,7 @@ func TestFindContact(t *testing.T) {
 	network2.RoutingTable.AddContact(kademlia.NewContact(kademlia.NewKademliaID("1111111300000000000000000000000000000000"), "localhost:8002"))
 	network2.RoutingTable.AddContact(kademlia.NewContact(kademlia.NewKademliaID("11111113FFF00000000000000000000000000000"), "localhost:8002"))
 
-	go network2.Listen("0.0.0.0", 3000)
+	go network2.Listen("0.0.0.0", 3002)
 	time.Sleep(1 * time.Second)
 
 	// Create a Kademlia instance with properly exported fields
@@ -75,21 +75,21 @@ func TestFindContact(t *testing.T) {
 }
 
 func TestStoreMessage(t *testing.T) {
-	me := kademlia.NewContact(kademlia.NewKademliaID("FFFFFFFF00000000000000000000000000000000"), "localhost:3000")
+	me := kademlia.NewContact(kademlia.NewKademliaID("FFFFFFFF00000000000000000000000000000000"), "localhost:3003")
 	network := kademlia.Network{
 		kademlia.NewRoutingTable(me),
 		&me,
 		kademlia.Storage{},
 	}
 
-	me2 := kademlia.NewContact(kademlia.NewKademliaID("11111111000000000000000000000000000000000"), "localhost:3000")
+	me2 := kademlia.NewContact(kademlia.NewKademliaID("11111111000000000000000000000000000000000"), "localhost:3003")
 	network2 := kademlia.Network{
 		kademlia.NewRoutingTable(me2),
 		&me2,
 		kademlia.Storage{},
 	}
 	network2.Storage.Init()
-	go network2.Listen("0.0.0.0", 3000)
+	go network2.Listen("0.0.0.0", 3003)
 	time.Sleep(1 * time.Second)
 
 	// Create a Kademlia instance with properly exported fields
@@ -102,14 +102,14 @@ func TestStoreMessage(t *testing.T) {
 }
 
 func TestFindData(t *testing.T) {
-	me := kademlia.NewContact(kademlia.NewKademliaID("FFFFFFFF00000000000000000000000000000000"), "localhost:3000")
+	me := kademlia.NewContact(kademlia.NewKademliaID("FFFFFFFF00000000000000000000000000000000"), "localhost:3004")
 	network := kademlia.Network{
 		kademlia.NewRoutingTable(me),
 		&me,
 		kademlia.Storage{},
 	}
 
-	me2 := kademlia.NewContact(kademlia.NewKademliaID("11111111000000000000000000000000000000000"), "localhost:3000")
+	me2 := kademlia.NewContact(kademlia.NewKademliaID("11111111000000000000000000000000000000000"), "localhost:3004")
 	network2 := kademlia.Network{
 		kademlia.NewRoutingTable(me2),
 		&me2,
@@ -117,7 +117,7 @@ func TestFindData(t *testing.T) {
 	}
 	network2.Storage.Init()
 	network2.Storage.Store(kademlia.NewKey("hejhej"), []byte("hejhej"))
-	go network2.Listen("0.0.0.0", 3000)
+	go network2.Listen("0.0.0.0", 3004)
 	time.Sleep(1 * time.Second)
 
 	// Create a Kademlia instance with properly exported fields
