@@ -52,14 +52,14 @@ func TestStore(t *testing.T) {
 	me := NewContact(NewKademliaID("FFFFFFFF00000000000000000000000000000000"), "localhost:3001")
 	me2 := NewContact(NewKademliaID("FEEEEEEF00000000000000000000000000000000"), "localhost:3002")
 	boot := NewContact(NewKademliaID("1111111100000000000000000000000000000000"), "localhost:3003")
-	kademliaBootsrap := NewKademlia(boot, true)
+	kademliaBootstrap := NewKademlia(boot, true)
 	kademlia := NewKademlia(me, false)
 	kademlia.BootstrapNode = boot
-	kademlia2 := NewKademlia(me, false)
+	kademlia2 := NewKademlia(me2, false)
 	kademlia2.BootstrapNode = boot
-	kademliaBootsrap.Network.RoutingTable.AddContact(me)
+	kademliaBootstrap.Network.RoutingTable.AddContact(me)
 	kademlia.Network.RoutingTable.AddContact(me2)
-	key, err := kademliaBootsrap.Store("hejhej")
+	key, err := kademliaBootstrap.Store("hejhej")
 	go kademlia.Network.Listen("0.0.0.0", 3001)
 	go kademlia2.Network.Listen("0.0.0.0", 3002)
 	if err != nil {
