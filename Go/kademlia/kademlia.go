@@ -29,15 +29,13 @@ func NewKademlia(node Contact, isBootstrap bool) *Kademlia {
 
 func (kademlia *Kademlia) LookupContact(target *KademliaID) ([]Contact, error) {
 	targetID := target
-	queriedContacts := new([]Contact)
+	queriedContacts := new([]Contact) // a list of nodes to know which nodes has been probed already
 	var closestList *[]Contact
 	alphaclosestList := kademlia.Network.RoutingTable.FindClosestContacts(targetID, alpha)
 	closestList = &alphaclosestList
 
 	currentClosest := NewContact(NewKademliaID("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF"), "")
 	currentClosest.distance = NewKademliaID("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")
-
-	// a list of nodes to know which nodes has been probed already
 
 	for {
 		updateClosest := false
@@ -60,7 +58,7 @@ func (kademlia *Kademlia) LookupContact(target *KademliaID) ([]Contact, error) {
 					for i := 0; i < len(templist); i++ {
 						templist[i].CalcDistance(targetID)
 					}
-					*closestList, updateClosest = kademlia.addUniqueContacts(templist, *closestList, currentClosest, updateClosest)
+					*closestList, currentClosest, updateClosest = kademlia.addUniqueContacts(templist, *closestList, currentClosest, updateClosest)
 					numQueried++
 				}
 
@@ -113,7 +111,7 @@ func containsContact(s []Contact, e Contact) bool {
 	return false
 }
 
-func (kademlia *Kademlia) addUniqueContacts(ls []Contact, shortList []Contact, currentClosest Contact, updateClosest bool) ([]Contact, bool) {
+func (kademlia *Kademlia) addUniqueContacts(ls []Contact, shortList []Contact, currentClosest Contact, updateClosest bool) ([]Contact, Contact, bool) {
 	if ls[0].Less(&currentClosest) {
 		currentClosest = ls[0]
 		for _, a := range ls {
@@ -125,7 +123,7 @@ func (kademlia *Kademlia) addUniqueContacts(ls []Contact, shortList []Contact, c
 
 		updateClosest = true
 	}
-	return shortList, updateClosest
+	return shortList, currentClosest, updateClosest
 }
 
 func (kademlia *Kademlia) StartUp() {
@@ -158,39 +156,11 @@ func (kademlia *Kademlia) JoinNetwork() { // function for nodes that are not the
 	}
 	for _, contact := range contacts {
 		kademlia.Network.RoutingTable.AddContact(contact)
-		// contacts2, _ := kademlia.Network.SendFindContactMessage(&contact)
-		// fmt.Println("here are some more contacts I now have: ", contacts2)
-		// for _, contact2 := range contacts2 {
-		// 	kademlia.Network.RoutingTable.AddContact(contact2)
-		// }
+		contacts2, _ := kademlia.Network.SendFindContactMessage(&contact, *kademlia.Node.ID)
+		for _, contact2 := range contacts2 {
+			kademlia.Network.RoutingTable.AddContact(contact2)
+		}
 	}
-	kademlia.refresh()
-}
-
-func (kademlia *Kademlia) refresh() {
-	var lowerBound *KademliaID
-	var highBound *KademliaID
-
-	if kademlia.Network.RoutingTable.Me.ID.Less(kademlia.BootstrapNode.ID) {
-		lowerBound = kademlia.BootstrapNode.ID
-		highBound = NewKademliaID("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF")
-	} else {
-		lowerBound = NewKademliaID("0000000000000000000000000000000000000000")
-		highBound = kademlia.BootstrapNode.ID
-	}
-
-	randomKademliaIDInRnge, err := NewRandomKademliaIDInRange(lowerBound, highBound)
-	if err != nil {
-		return
-	}
-	contacts, err := kademlia.LookupContact(randomKademliaIDInRnge)
-	if err != nil {
-		return
-	}
-	for _, contact := range contacts {
-		kademlia.Network.RoutingTable.AddContact(contact)
-	}
-
 }
 
 func (kademlia *Kademlia) LookupData(hash string) (bool, []byte) {
